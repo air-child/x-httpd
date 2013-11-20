@@ -955,8 +955,6 @@ void processConnection( int c ){
 					//iPayloadSize = htmlGeneric( header, html, (char *)page_index );
 					iPayloadSize = htmlGeneric( header, html, "x-httpd 13.11.20.0015 alpha" );
 
-
-
 				//these items are dynamic
 				}else if( strcmp( requestString, "/state.xml" ) == 0 ){
 					iPayloadSize = htmlStateXML( header, html );
@@ -975,6 +973,14 @@ void processConnection( int c ){
 
 				}else{
 					//we should look on the disk for this file.
+					
+					
+					//Default resource handler: http://localhost:1312/ -> http://localhost:1312/index.htm
+					if( strcmp( requestString, "/" ) == 0 ){
+						sprintf( requestString, "/index.htm" );
+					}
+					
+					
 					
 					char webRoot[1024];
 					findWebRoot( webRoot );
