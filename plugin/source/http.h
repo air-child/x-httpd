@@ -66,6 +66,10 @@ extern int htmlGeneric( char *header, char *html, char *payload );
 extern int htmlSendBinary( char *header, char *html, unsigned char *buffer, int size, char *fileType );
 
 extern int htmlUniSet( char *header, char *html );
+
+extern int htmlUniGet( char *header, char *html );
+
+
 extern int htmlMiscStateXML( char *header, char *html, char *queryString );
 extern int htmlStateXML( char *header, char *html );
 

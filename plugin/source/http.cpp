@@ -297,6 +297,7 @@ int htmlUniSet( char *header, char *html ){
 	
 	parseQuerystringForString( "dref", drefName, 1024 );
 	parseQuerystringForString( "type", drefType, 4 );
+	//val is retrieved below depending on the dref type argument.
 	
 	XPLMDataRef tmpDr = XPLMFindDataRef( drefName );
 	
@@ -349,6 +350,61 @@ int htmlUniSet( char *header, char *html ){
 	return strlen( html );
 
 }
+
+
+int htmlUniGet( char *header, char *html ){
+	header200OK_HTM( header );
+	
+	char drefName[1024];
+	char drefType[4];
+	
+	char drefValueFormatString[64];
+	
+	
+	parseQuerystringForString( "dref", drefName, 1024 );
+	parseQuerystringForString( "type", drefType, 4 );
+	//val is retrieved below depending on the dref type argument.
+	
+	XPLMDataRef tmpDr = XPLMFindDataRef( drefName );
+	
+	switch( drefType[0] ){
+		case 'i':
+			{
+				//int tmp = parseQuerystringForInt("val");
+				//XPLMSetDatai( tmpDr, tmp );
+				int tmp = XPLMGetDatai( tmpDr );
+				sprintf( drefValueFormatString, "%i", tmp );
+			}
+			break;
+		case 'f':
+			{
+				//float tmp = parseQuerystringForFloat("val");
+				//XPLMSetDataf( tmpDr, tmp );
+				float tmp = XPLMGetDataf( tmpDr );
+				sprintf( drefValueFormatString, "%f", tmp );
+			}
+			break;
+		case 'c':
+			{
+				sprintf( drefValueFormatString, "\"%s\"", "fixme_get_string_vals" );
+			}
+			break;		
+	}
+	
+	
+	
+	sprintf( html,
+					"{ result:true, type:'%s', value:%s }",
+						drefType,
+						drefValueFormatString
+				);
+					
+
+	return strlen( html );
+
+}
+
+
 
 int htmlMiscStateXML( char *header, char *html, char *queryString ){
 
@@ -913,7 +969,7 @@ void processConnection( int c ){
 				sprintf( caDbg, "Authorization is good!\n"); XPLMDebugString(caDbg);
 			}
 		
-				if( strcmp( requestString, "/" ) == 0 ){
+				if( strcmp( requestString, "/about" ) == 0 ){
 					//iPayloadSize = htmlGeneric( header, html, (char *)page_index );
 					iPayloadSize = htmlGeneric( header, html, "x-httpd 13.11.20.0015 alpha" );
 
@@ -925,6 +981,9 @@ void processConnection( int c ){
 
 				}else if( strcmp( requestString, "/full-state.xml" ) == 0 ){
 					iPayloadSize = htmlMiscStateXML( header, html, queryString ); //htmlRootDocument( header, html );
+
+				}else if( strcmp( requestString, "/get" ) == 0 ){
+					iPayloadSize = htmlUniGet( header, html );
 
 				}else if( strcmp( requestString, "/set" ) == 0 ){
 					iPayloadSize = htmlUniSet( header, html );
