@@ -95,12 +95,12 @@
 				234964F3183B9526001F6498 /* http.h */,
 				234964F6183B9536001F6498 /* gui.cpp */,
 				234964F7183B9536001F6498 /* gui.h */,
+				23496501183BB82E001F6498 /* global_defs.cpp */,
 				234964FA183B9644001F6498 /* global_defs.h */,
 				234964FB183B992E001F6498 /* common_sdk.h */,
 				234964FC183B99B0001F6498 /* drefs.cpp */,
 				234964FD183B99B0001F6498 /* drefs.h */,
 				23496500183BB7B5001F6498 /* common_includes.h */,
-				23496501183BB82E001F6498 /* global_defs.cpp */,
 			);
 			name = Source;
 			sourceTree = "<group>";

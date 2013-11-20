@@ -46,4 +46,22 @@ extern int bLogDebugToConsole;
 
 
 
+
+
+
+//write buffer pointers.
+extern char *inbuf;
+extern char *html;
+
+
+extern unsigned char *auth_token_raw; //storage for our base64 encoded auth token.
+extern unsigned char *auth_token_b64; //storage for our base64 encoded auth token.
+
+
+extern unsigned char *generic_cache;
+
+
+
+
+
 #endif

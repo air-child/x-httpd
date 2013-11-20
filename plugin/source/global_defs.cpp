@@ -31,3 +31,19 @@ int bLogDebugToConsole = 0;
 
 
 
+
+
+
+//write buffer pointers.
+char *inbuf;
+char *html;
+
+
+unsigned char *auth_token_raw; //storage for our base64 encoded auth token.
+unsigned char *auth_token_b64; //storage for our base64 encoded auth token.
+
+
+unsigned char *generic_cache;
+
+
+
