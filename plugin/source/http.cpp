@@ -394,9 +394,10 @@ int htmlUniGet( char *header, char *html ){
 	
 	
 	sprintf( html,
-					"{ result:true, type:'%s', value:%s }",
-						drefType,
-						drefValueFormatString
+					"{ result:true, type:'%s', value:%s, dref:'%s' }",
+						drefType, //type data for easier programming for the client.
+						drefValueFormatString, //dynamically formatted above.
+						drefName //echo the name for easier programming.
 				);
 					
 
