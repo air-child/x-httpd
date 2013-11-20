@@ -660,7 +660,7 @@ void processConnection( int c ){
 
 	FILE *sockIn, *sockOut;
 
-	
+	char caDbg[1024];
 
 		sockIn = fdopen( c, "r" );
 			
@@ -681,9 +681,14 @@ void processConnection( int c ){
 			
 		
 			if( bLogDebugToConsole ){
-				printf("---recv x-httpd request, %i bytes---\n", (int)strlen(inbuf));
-					printf( "%s", inbuf );
-				printf("--- end recv ---\n");
+				sprintf(caDbg, "---recv x-httpd request, %i bytes---\n", (int)strlen(inbuf));
+				XPLMDebugString(caDbg);
+				
+					sprintf(caDbg, "%s", inbuf );
+					XPLMDebugString(caDbg);
+					
+				sprintf(caDbg, "--- end recv ---\n");
+				XPLMDebugString(caDbg);
 			}
 			
 
@@ -762,12 +767,12 @@ void processConnection( int c ){
 		if( iRequestStringStart > -1 && iRequestStringStop > -1 ){
 			memcpy( requestString, inbuf+iRequestStringStart, iRequestStringStop-iRequestStringStart );
 			if( bLogDebugToConsole ){
-				printf( "x-httpd request: (%s)\n", requestString );
+				sprintf(caDbg, "x-httpd request: (%s)\n", requestString ); XPLMDebugString(caDbg);
 			}
 			
 		}else{
 			if( bLogDebugToConsole ){
-				printf( "IRStart/IRStop; %i / %i\n", iRequestStringStart, iRequestStringStop );
+				sprintf(caDbg, "IRStart/IRStop; %i / %i\n", iRequestStringStart, iRequestStringStop ); XPLMDebugString(caDbg);
 			}
 		}
 
@@ -776,13 +781,13 @@ void processConnection( int c ){
 			if( iQueryStringStart > -1 && iQueryStringStop > -1 ){
 				memcpy( queryString, inbuf+iQueryStringStart, iQueryStringStop-iQueryStringStart );
 				if( bLogDebugToConsole ){
-					printf( "x-httpd request querystring: (%s)\n", queryString );
+					sprintf(caDbg, "x-httpd request querystring: (%s)\n", queryString ); XPLMDebugString(caDbg);
 				}
 				
 				
 			}else{
 				if( bLogDebugToConsole ){
-					printf( "IQStart/IQStop; %i / %i\n", iQueryStringStart, iQueryStringStop );
+					sprintf( caDbg, "IQStart/IQStop; %i / %i\n", iQueryStringStart, iQueryStringStop ); XPLMDebugString(caDbg);
 				}
 				//the user has submitted an ivalid request and we could not parse the requested-file string out of it.
 				//close( c );
@@ -842,7 +847,7 @@ void processConnection( int c ){
 							
 			strcpy( queryString, fixUrlEntities.c_str() );
 			if( bLogDebugToConsole ){
-				printf("Decoded URL: (%s)\n", queryString );
+				sprintf( caDbg, "Decoded URL: (%s)\n", queryString ); XPLMDebugString(caDbg);
 			}
 
 			//--end of repairs
@@ -905,7 +910,7 @@ void processConnection( int c ){
 
 		if( (strcmp(authorizationToken.c_str(), (const char *)auth_token_b64) == 0) || ( ! bRequirePassword ) ){
 			if( bLogDebugToConsole ){
-				printf("Authorization is good!\n");
+				sprintf( caDbg, "Authorization is good!\n"); XPLMDebugString(caDbg);
 			}
 		
 				if( strcmp( requestString, "/" ) == 0 ){
@@ -932,14 +937,13 @@ void processConnection( int c ){
 					
 					char webRoot[1024];
 					findWebRoot( webRoot );
-					printf( "webroot: %s\n", webRoot );
+					sprintf( caDbg, "webroot: %s\n", webRoot ); XPLMDebugString(caDbg);
 					
 					int iTempPayloadSize=0;
 					
 					char tmpFilename[2048];
 					sprintf( tmpFilename, "html%s", requestString );
-					
-					printf("Attempting to open and temp-cache the file: %s\n", tmpFilename );
+					sprintf( caDbg, "Attempting to open and temp-cache the file: %s\n", tmpFilename ); XPLMDebugString(caDbg);
 					
 					
 					//fixme; make the file-extension detector work with more than just three letter extensions.
@@ -951,7 +955,7 @@ void processConnection( int c ){
 							4
 							); //this should give us the file extension.
 					
-					printf("File extension: %s\n", tmpFileType );
+					sprintf( caDbg, "File extension: %s\n", tmpFileType ); XPLMDebugString(caDbg);
 					
 					
 					
@@ -961,7 +965,7 @@ void processConnection( int c ){
 					cacheFile_Bin(webRoot, tmpFilename, &generic_cache, &iTempPayloadSize);
 					
 					if( iTempPayloadSize > 0 ){
-						printf("payload size returned by cacheFile_Bin: %i\n", iTempPayloadSize );
+						sprintf( caDbg, "payload size returned by cacheFile_Bin: %i\n", iTempPayloadSize ); XPLMDebugString(caDbg);
 					
 						iPayloadSize = htmlSendBinary(header, html, generic_cache, iTempPayloadSize, tmpFileType);
 						//iPayloadSize = htmlSendImagePNG( header, html, img_shadow, &img_shadow_size );
@@ -983,10 +987,10 @@ void processConnection( int c ){
 
 		}else{
 			if( bLogDebugToConsole ){
-				printf("HTTP Auth is BAD!\n");
+				sprintf( caDbg, "HTTP Auth is BAD!\n"); XPLMDebugString( caDbg );
 			}
 			if( bLogDebugToConsole ){ 
-				printf("recv: (%s) wanted: (%s)\n", authorizationToken.c_str(), (const char *)auth_token_b64);
+				sprintf( caDbg, "recv: (%s) wanted: (%s)\n", authorizationToken.c_str(), (const char *)auth_token_b64); XPLMDebugString(caDbg);
 			}
 			iPayloadSize = htmlAccessDenied( header, html );
 			
@@ -1031,9 +1035,12 @@ void processConnection( int c ){
 void cacheFile_Text( char *rootFolder, char *filename, unsigned char **buffer ){
 
 	char targetFile[ strlen(rootFolder) + strlen(filename) + 2 ];
+	
+	char caDbg[1024];
+	
 
 	sprintf( targetFile, "%s%s", rootFolder, filename );
-		printf( "attempting to cache text file: %s\n", targetFile );
+	sprintf( caDbg, "attempting to cache text file: %s\n", targetFile ); XPLMDebugString( caDbg );
 
 
 	int iSize = getFileSize( targetFile ) + 1; //we add 1 to the end to ensure we have a terminator byte
@@ -1059,9 +1066,11 @@ void cacheFile_Text( char *rootFolder, char *filename, unsigned char **buffer ){
 void cacheFile_Bin( char *rootFolder, char *filename, unsigned char **buffer, int *iSize ){
 
 	char targetFile[ strlen(rootFolder) + strlen(filename) + 2 ];
+	
+	char caDbg[1024];
 
 	sprintf( targetFile, "%s%s", rootFolder, filename );
-		printf( "attempting to cache binary file: %s\n", targetFile );
+	sprintf( caDbg, "attempting to cache binary file: %s\n", targetFile ); XPLMDebugString( caDbg );
 
 	*iSize = getFileSize( targetFile );
 	
@@ -1088,12 +1097,12 @@ void prepareFileCache(){
 	inbuf = (char *)malloc( BUFSIZE );
 	html = (char *)malloc( BUFSIZE );
 
-
+	char caDbg[1024];
 
 	char webRoot[1024];
 	findWebRoot( webRoot );
 	
-	printf( "webroot: %s\n", webRoot );
+	sprintf(caDbg, "webroot: %s\n", webRoot ); XPLMDebugString(caDbg);
 	
 		//cache authentication details
 		cacheFile_Text( webRoot, "password.txt", &auth_token_raw );
@@ -1101,7 +1110,7 @@ void prepareFileCache(){
 				auth_token_b64 = (unsigned char*)malloc( b64_len );
 				memset(auth_token_b64, 0, b64_len );
 					encode_string( (char *)auth_token_raw, (char *)auth_token_b64 );
-					printf("Authentication token loaded and encoded: (%s) > (%s)\n", auth_token_raw, auth_token_b64 );
+					sprintf( caDbg, "Authentication token loaded and encoded: (%s) > (%s)\n", auth_token_raw, auth_token_b64 ); XPLMDebugString(caDbg);
 
 }
 
@@ -1123,10 +1132,14 @@ int getFileSize( char *filename ){
 
 	struct stat fsize;
 	
+	char caDbg[1024];
+	
+	
 	if( !stat(filename, &fsize) ){
 		return fsize.st_size;
 	}else{
-		printf("No such file (stat error): %s\n", filename);
+		sprintf( caDbg, "No such file (stat error): %s\n", filename);
+		XPLMDebugString(caDbg);
 	}
 	
 	return -1;

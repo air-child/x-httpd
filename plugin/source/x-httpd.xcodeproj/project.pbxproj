@@ -12,8 +12,6 @@
 		233DFB570921C2B80008D35B /* b64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 233DFB550921C2B80008D35B /* b64.cpp */; };
 		234964F4183B9526001F6498 /* http.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 234964F2183B9526001F6498 /* http.cpp */; };
 		234964F5183B9526001F6498 /* http.h in Headers */ = {isa = PBXBuildFile; fileRef = 234964F3183B9526001F6498 /* http.h */; };
-		234964F8183B9536001F6498 /* gui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 234964F6183B9536001F6498 /* gui.cpp */; };
-		234964F9183B9536001F6498 /* gui.h in Headers */ = {isa = PBXBuildFile; fileRef = 234964F7183B9536001F6498 /* gui.h */; };
 		234964FE183B99B0001F6498 /* drefs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 234964FC183B99B0001F6498 /* drefs.cpp */; };
 		234964FF183B99B0001F6498 /* drefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 234964FD183B99B0001F6498 /* drefs.h */; };
 		23496502183BB82E001F6498 /* global_defs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 23496501183BB82E001F6498 /* global_defs.cpp */; };
@@ -126,7 +124,6 @@
 				2316C5DB07CE06E400C86874 /* main.h in Headers */,
 				233DFB560921C2B80008D35B /* b64.h in Headers */,
 				234964F5183B9526001F6498 /* http.h in Headers */,
-				234964F9183B9536001F6498 /* gui.h in Headers */,
 				234964FF183B99B0001F6498 /* drefs.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -207,7 +204,6 @@
 				8D01CCCC0486CAD60068D4B7 /* main.cpp in Sources */,
 				233DFB570921C2B80008D35B /* b64.cpp in Sources */,
 				234964F4183B9526001F6498 /* http.cpp in Sources */,
-				234964F8183B9536001F6498 /* gui.cpp in Sources */,
 				234964FE183B99B0001F6498 /* drefs.cpp in Sources */,
 				23496502183BB82E001F6498 /* global_defs.cpp in Sources */,
 			);
