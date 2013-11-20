@@ -658,6 +658,10 @@ PLUGIN_API float MyFlightLoopCallback(
                                    void *               inRefcon)
 {
 
+
+		char caDbg[1024];
+
+
 			static int socketsInit = 0;
 			if( ! socketsInit ){
 			
@@ -720,8 +724,12 @@ PLUGIN_API float MyFlightLoopCallback(
 						char remoteAddress[32];
 							strcpy( remoteAddress, inet_ntoa(from.sin_addr) );
 							
-							if(true){
-							//if( (strcmp( "127.0.0.1", remoteAddress ) == 0) || bAllowRemoteConnections ){
+							sprintf( caDbg, "x-httpd: request from: %s\n", remoteAddress );
+							XPLMDebugString(caDbg);
+							
+							
+							//if(true){
+							if( (strcmp( "127.0.0.1", remoteAddress ) == 0) || bAllowRemoteConnections ){
 						
 								//ntohl( &(from.sin_addr) );
 								if( bLogDebugToConsole ){
@@ -731,6 +739,10 @@ PLUGIN_API float MyFlightLoopCallback(
 								processConnection(c);
 								
 							}else{
+							
+								sprintf( caDbg, "x-httpd: Access Denied: allow_remote: %i\n", bAllowRemoteConnections );
+								XPLMDebugString(caDbg);
+							
 								close(c);
 							}
 						break;
