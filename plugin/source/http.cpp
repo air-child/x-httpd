@@ -292,7 +292,7 @@ int htmlUniSet( char *header, char *html ){
 	char drefName[1024];
 	char drefType[4];
 	
-	char drefValueFormatString[64];
+	//char drefValueFormatString[64];
 	
 	
 	parseQuerystringForString( "dref", drefName, 1024 );
@@ -306,46 +306,27 @@ int htmlUniSet( char *header, char *html ){
 			{
 				int tmp = parseQuerystringForInt("val");
 				XPLMSetDatai( tmpDr, tmp );
-				sprintf( drefValueFormatString, "Int Value: (%i)<br/>\n", tmp );
+				//sprintf( drefValueFormatString, "Int Value: (%i)<br/>\n", tmp );
 			}
 			break;
 		case 'f':
 			{
 				float tmp = parseQuerystringForFloat("val");
 				XPLMSetDataf( tmpDr, tmp );
-				sprintf( drefValueFormatString, "Float Value: (%f)<br/>\n", tmp );
+				//sprintf( drefValueFormatString, "Float Value: (%f)<br/>\n", tmp );
 			}
 			break;
 		case 'c':
 			{
-				sprintf( drefValueFormatString, "String Value: (%s)<br/>\n", "foo" );
+				//sprintf( drefValueFormatString, "String Value: (%s)<br/>\n", "foo" );
 			}
 			break;		
 	}
 	
 	
+	sprintf( html, "{ result:true }" );
 	
-	sprintf( html,
-					//"Uni Set<br/>\n"
-					"Dataref: (%s)<br/>\n"
-					"Type: (%s)<br/>\n"
-					"%s<br/>"
-					
-						//"<hr/>"
-						//"<form action='/set' method='GET'>"
-						//	"dref: <input type='text' name='dref' value='%s'/><br/>"
-						//	"type: <input type='text' name='type' value='%s'/><br/>"
-						//	"val: <input type='text' name='val'/></br>"
-						//	"<input type='submit'/><br/>"
-						//"</form>"
-					,
-						drefName,
-						drefType,
-							drefValueFormatString//,
-						//drefName, //form field 1
-						//drefType //form field 2
-				);
-					
+	
 
 	return strlen( html );
 
@@ -394,7 +375,7 @@ int htmlUniGet( char *header, char *html ){
 	
 	
 	sprintf( html,
-					"{ result:true, type:'%s', value:%s, dref:'%s' }",
+					"{ result:true, type:\"%s\", value:%s, dref:\"%s\" }",
 						drefType, //type data for easier programming for the client.
 						drefValueFormatString, //dynamically formatted above.
 						drefName //echo the name for easier programming.
