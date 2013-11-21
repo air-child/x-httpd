@@ -762,6 +762,9 @@ PLUGIN_API float MyFlightLoopCallback(
 								sprintf( caDbg, "x-httpd: Access Denied: allow_remote: %i\n", bAllowRemoteConnections );
 								XPLMDebugString(caDbg);
 							
+								//htmlAccessDenied
+								//TODO: send basic hard coded http packet with denied message
+							
 								close(c);
 							}
 						break;
