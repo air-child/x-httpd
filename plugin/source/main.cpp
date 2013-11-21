@@ -724,7 +724,7 @@ PLUGIN_API float MyFlightLoopCallback(
 						char remoteAddress[32];
 							strcpy( remoteAddress, inet_ntoa(from.sin_addr) );
 							
-							sprintf( caDbg, "x-httpd: request from: %s\n", remoteAddress );
+							sprintf( caDbg, "\nx-httpd: request from: %s\n", remoteAddress );
 							XPLMDebugString(caDbg);
 							
 							

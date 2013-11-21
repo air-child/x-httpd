@@ -28,7 +28,7 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 
 
 
-extern char *queryStringV[256]; //lookup table for query string values after 1st stage parsing.
+extern char *queryStringV[1024]; //lookup table for query string values after 1st stage parsing.
 extern int queryStringVCount;
 
 extern void parseQuerystring( char *queryString );

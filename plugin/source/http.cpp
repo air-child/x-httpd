@@ -19,7 +19,7 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 #include "http.h"
 
 
-char *queryStringV[256]; //lookup table for query string values after 1st stage parsing.
+char *queryStringV[1024]; //lookup table for query string values after 1st stage parsing.
 int queryStringVCount = 0;
 
 
@@ -290,13 +290,14 @@ int htmlUniSet( char *header, char *html ){
 	header200OK_HTM( header );
 	
 	char drefName[1024];
-	char drefType[4];
+	char drefType[1024];
 	
-	//char drefValueFormatString[64];
+	memset( drefName, 0, 1024 );
+	memset( drefType, 0, 1024 );
 	
 	
-	parseQuerystringForString( "dref", drefName, 1024 );
-	parseQuerystringForString( "type", drefType, 4 );
+	parseQuerystringForString( "dref", drefName, 1023 );
+	parseQuerystringForString( "type", drefType, 1023 );
 	//val is retrieved below depending on the dref type argument.
 	
 	XPLMDataRef tmpDr = XPLMFindDataRef( drefName );
@@ -324,8 +325,16 @@ int htmlUniSet( char *header, char *html ){
 	}
 	
 	
-	sprintf( html, "{ result:true }" );
 	
+	
+	//sprintf( html, "{ result:true }" );
+		sprintf( html,
+					"{ \"result\":true, \"type\":\"%s\", \"value\":%s, \"dref\":\"%s\" }",
+						drefType, //type data for easier programming for the client.
+						"_", //dynamically formatted above.
+						drefName //echo the name for easier programming.
+				);
+
 	
 
 	return strlen( html );
@@ -334,19 +343,44 @@ int htmlUniSet( char *header, char *html ){
 
 
 int htmlUniGet( char *header, char *html ){
+
+	char caDbg[1024];
+
 	header200OK_HTM( header );
 	
 	char drefName[1024];
-	char drefType[4];
+	char drefType[1024];
+	char drefStringVal[1024];
 	
-	char drefValueFormatString[64];
+	memset( drefName, 0, 1024 );
+	memset( drefType, 0, 1024 );
+	memset( drefStringVal, 0, 1024 );
 	
 	
-	parseQuerystringForString( "dref", drefName, 1024 );
-	parseQuerystringForString( "type", drefType, 4 );
+	
+	parseQuerystringForString( "dref", drefName, 1023 );
+	parseQuerystringForString( "type", drefType, 1023 );
 	//val is retrieved below depending on the dref type argument.
 	
 	XPLMDataRef tmpDr = XPLMFindDataRef( drefName );
+	
+	
+	//Check to see if we could find the dataref.
+	if( tmpDr == NULL ){
+		sprintf( html,
+						"{ \"result\":false, \"type\":\"%s\", \"value\":%s, \"dref\":\"%s\" }",
+							drefType, //type data for easier programming for the client.
+							"404: Dataref not found.", //dynamically formatted above.
+							drefName //echo the name for easier programming.
+					);
+						
+
+		return strlen( html );
+	}
+	
+	
+	sprintf(caDbg, "  extracted dref type: %s\n", drefType);
+	XPLMDebugString(caDbg);
 	
 	switch( drefType[0] ){
 		case 'i':
@@ -354,7 +388,7 @@ int htmlUniGet( char *header, char *html ){
 				//int tmp = parseQuerystringForInt("val");
 				//XPLMSetDatai( tmpDr, tmp );
 				int tmp = XPLMGetDatai( tmpDr );
-				sprintf( drefValueFormatString, "%i", tmp );
+				sprintf( drefStringVal, "%i", tmp );
 			}
 			break;
 		case 'f':
@@ -362,12 +396,20 @@ int htmlUniGet( char *header, char *html ){
 				//float tmp = parseQuerystringForFloat("val");
 				//XPLMSetDataf( tmpDr, tmp );
 				float tmp = XPLMGetDataf( tmpDr );
-				sprintf( drefValueFormatString, "%f", tmp );
+				sprintf( drefStringVal, "%0.5f", tmp );
+			}
+			break;
+		case 'd':
+			{
+				//float tmp = parseQuerystringForFloat("val");
+				//XPLMSetDataf( tmpDr, tmp );
+				double tmp = XPLMGetDataf( tmpDr );
+				sprintf( drefStringVal, "%0.5f", tmp );
 			}
 			break;
 		case 'c':
 			{
-				sprintf( drefValueFormatString, "\"%s\"", "fixme_get_string_vals" );
+				sprintf( drefStringVal, "\"%s\"", "fixme_get_string_vals" );
 			}
 			break;		
 	}
@@ -375,9 +417,9 @@ int htmlUniGet( char *header, char *html ){
 	
 	
 	sprintf( html,
-					"{ result:true, type:\"%s\", value:%s, dref:\"%s\" }",
+					"{ \"result\":true, \"type\":\"%s\", \"value\":%s, \"dref\":\"%s\" }",
 						drefType, //type data for easier programming for the client.
-						drefValueFormatString, //dynamically formatted above.
+						drefStringVal, //dynamically formatted above.
 						drefName //echo the name for easier programming.
 				);
 					
@@ -640,16 +682,20 @@ float parseQuerystringForFloat( char *key ){
 	
 	return atof( tmpret );
 }
+
+
+//This function is nasty.
 void parseQuerystringForString( char *key, char *ret, int retSize ){
 
-	//printf("parsing query string for value of: (%s)\n", key);
+	char caDbg[1024];
+	sprintf( caDbg, "parsing query string for value of: (%s)\n", key); XPLMDebugString( caDbg );
 
 	int x=0;
     char **ap, *argv[2];//, *kv;
 
 	for(x=0; x<queryStringVCount; x++){
 	
-		//printf("dref LUT dump: %s\n", queryStringV[x]);
+		sprintf( caDbg, "dref LUT dump: %s\n", queryStringV[x]);  XPLMDebugString( caDbg );
 	
 			char kv[strlen(queryStringV[x])+1];// = queryStringV[x];
 			strcpy(kv, queryStringV[x]);
@@ -663,16 +709,17 @@ void parseQuerystringForString( char *key, char *ret, int retSize ){
 				}
 			}
 			
-			//printf("parsing: (%s) = (%s)\n", argv[0], argv[1]);
+			//sprintf( caDbg, "parsing: (%s) = (%s)\n", argv[0], argv[1]);  XPLMDebugString( caDbg );
 				
 			if( strcmp( argv[0], key ) == 0 ){
-				//printf("parser located: (%s) = (%s)\n", argv[0], argv[1]);
+				sprintf( caDbg, "parser located: (%s) = (%s)\n", argv[0], argv[1]);  XPLMDebugString( caDbg );
 				
 				if( argv[1] != 0 ){
 					if( (int)strlen(argv[1]) < retSize ){ //buff overflow protection
 						strcpy( ret, argv[1] );
 					}else{
-						strcpy( ret, "" );
+						XPLMDebugString("x-httpd: Error: query string parser: return value overflowed.");
+						strcpy( ret, "overflow" );
 					}
 				}else{
 					ret = "";
