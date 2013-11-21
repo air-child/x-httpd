@@ -27,6 +27,8 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 
 #include "XPLMNavigation.h"
 
+#include "XPLMPlugin.h"
+
 #include "XPLMMenus.h"
 
 #include "XPStandardWidgets.h"

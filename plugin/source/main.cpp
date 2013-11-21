@@ -40,6 +40,10 @@ PLUGIN_API int XPluginStart(
 		sprintf( caDbg, "x-httpd: hostname: %s ip: %s\n", caHostName, caLocalIP );
 		XPLMDebugString( caDbg );
 
+		
+		//EXPERIMENTAL: filter registration.
+		xhttpd_mapResourceMap["/gizmo"] = "gizmo.x-plugins.com";
+
 
 
 

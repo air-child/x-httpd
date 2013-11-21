@@ -47,3 +47,7 @@ unsigned char *generic_cache;
 
 
 
+//std::map<intptr_t, client_handle> xhttpd_mapClientReturnPacketQueue;
+std::map<std::string, std::string> xhttpd_mapResourceMap; //map: uri -> plugin_id
+
+

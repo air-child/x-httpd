@@ -19,6 +19,11 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 #include "http.h"
 
 
+#include "common_sdk.h"
+
+#include "common_includes.h"
+
+
 char *queryStringV[1024]; //lookup table for query string values after 1st stage parsing.
 int queryStringVCount = 0;
 
@@ -1020,6 +1025,37 @@ void processConnection( int c ){
 
 				}else{
 					//we should look on the disk for this file.
+					
+					
+					//EXPERIMENTAL
+					//check to see if another plugin has registered to handle this resource..
+					//FIXME: use find...
+					std::map<std::string, std::string>::iterator it = xhttpd_mapResourceMap.find( std::string(requestString) );
+					
+					if( it != xhttpd_mapResourceMap.end() ){
+						std::string sMsg = "x-httpd: found mapped filter for resource: " + std::string(it->first) + " -> " + it->second + "\n";
+						XPLMDebugString(sMsg.c_str());
+					
+						std::string sPluginID = it->second;
+						
+
+						XPLMPluginID target = XPLMFindPluginBySignature( sPluginID.c_str() ); //const char *         inSignature);
+					
+						if( target != XPLM_NO_PLUGIN_ID ){
+							//we located the desired plugin, lets send it a message.
+							long SEND_BLOB = 0x0100b10b;
+							XPLMSendMessageToPlugin( target, SEND_BLOB, (void*)"blob" );
+							
+								XPLMDebugString("x-httpd: sent blob!\n");
+
+						}
+					
+					}
+					
+					
+					
+					
+					
 					
 					
 					//Default resource handler: http://localhost:1312/ -> http://localhost:1312/index.htm

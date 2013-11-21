@@ -31,7 +31,7 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 
 #define X_HTTPD_VERSION_STRING "x-httpd v0.1a (C) 2005,2013, br@x-plugins.com"
 
-
+#include "common_includes.h"
 
 
 
@@ -61,6 +61,10 @@ extern unsigned char *auth_token_b64; //storage for our base64 encoded auth toke
 extern unsigned char *generic_cache;
 
 
+#include <map>
+
+//extern std::map<intptr_t, client_handle> xhttpd_mapClientReturnPacketQueue;
+extern std::map<std::string, std::string> xhttpd_mapResourceMap; //map: uri -> plugin_id
 
 
 

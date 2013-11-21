@@ -62,6 +62,7 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 
 #include "drefs.h"
 
+#include "common_sdk.h"
 
 
 
