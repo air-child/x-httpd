@@ -626,11 +626,46 @@ PLUGIN_API void XPluginDisable(void){
 }
 
 
+
+
 PLUGIN_API void XPluginReceiveMessage(
     XPLMPluginID   inFromWho,
     long        inMessage,
     void *      inParam){
     
+
+
+	char outName[1024];
+	char outPath[1024];
+	char outSig[1024];
+	char outDescription[1024];
+
+		XPLMGetPluginInfo( inFromWho, outName, outPath, outSig, outDescription );
+	
+	
+	if( strcmp( outSig, "gizmo.x-plugins.com" ) == 0 ){
+		//message is from gizmo!
+		
+		XPLMDebugString("x-httpd: ixplc msg from: gizmo\n");
+		
+		long SEND_BLOB = 0x0100b10b;
+		if( inMessage == SEND_BLOB ){
+		
+			XPLMDebugString("\n");
+			XPLMDebugString( (char*) inParam );
+			XPLMDebugString("\n");
+			
+			
+			strcpy( hack_blob, (char*) inParam );
+			
+		
+		}
+		
+	}
+	
+	
+	
+	
     
 }
 #pragma mark -

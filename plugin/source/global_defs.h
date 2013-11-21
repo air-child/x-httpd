@@ -34,6 +34,9 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 #include "common_includes.h"
 
 
+extern char hack_blob[8192];
+
+
 
 extern int sock; //the server socket
 

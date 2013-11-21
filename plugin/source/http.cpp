@@ -1021,15 +1021,12 @@ void processConnection( int c ){
 					iPayloadSize = htmlUniSet( header, html );
 
 
-
-
 				}else{
 					//we should look on the disk for this file.
 					
 					
 					//EXPERIMENTAL
 					//check to see if another plugin has registered to handle this resource..
-					//FIXME: use find...
 					std::map<std::string, std::string>::iterator it = xhttpd_mapResourceMap.find( std::string(requestString) );
 					
 					if( it != xhttpd_mapResourceMap.end() ){
@@ -1038,74 +1035,99 @@ void processConnection( int c ){
 					
 						std::string sPluginID = it->second;
 						
-
 						XPLMPluginID target = XPLMFindPluginBySignature( sPluginID.c_str() ); //const char *         inSignature);
 					
 						if( target != XPLM_NO_PLUGIN_ID ){
 							//we located the desired plugin, lets send it a message.
 							long SEND_BLOB = 0x0100b10b;
-							XPLMSendMessageToPlugin( target, SEND_BLOB, (void*)"blob" );
+							XPLMDebugString("x-httpd: sending ixplc blob..\n");
+							XPLMSendMessageToPlugin( target, SEND_BLOB, (void*)inbuf );
 							
-								XPLMDebugString("x-httpd: sent blob!\n");
+							//data for this exchange will be returned inside the function: XPluginReceiveMessage
+							//hmm..
 
 						}
-					
-					}
-					
-					
-					
-					
-					
-					
-					
-					//Default resource handler: http://localhost:1312/ -> http://localhost:1312/index.htm
-					if( strcmp( requestString, "/" ) == 0 ){
-						sprintf( requestString, "/index.htm" );
-					}
-					
-					
-					
-					char webRoot[1024];
-					findWebRoot( webRoot );
-					sprintf( caDbg, "webroot: %s\n", webRoot ); XPLMDebugString(caDbg);
-					
-					int iTempPayloadSize=0;
-					
-					char tmpFilename[2048];
-					sprintf( tmpFilename, "html%s", requestString );
-					sprintf( caDbg, "Attempting to open and temp-cache the file: %s\n", tmpFilename ); XPLMDebugString(caDbg);
-					
-					
-					//fixme; make the file-extension detector work with more than just three letter extensions.
-					char tmpFileType[5];
-					memset(	tmpFileType, 0, 5 );
-					memcpy(
-							tmpFileType,
-							tmpFilename + (strlen(tmpFilename)-4), 
-							4
-							); //this should give us the file extension.
-					
-					sprintf( caDbg, "File extension: %s\n", tmpFileType ); XPLMDebugString(caDbg);
-					
-					
-					
-					//fixme; check requested filename for ".." parent dir strings
-					
-					//todo; detect file type...
-					cacheFile_Bin(webRoot, tmpFilename, &generic_cache, &iTempPayloadSize);
-					
-					if( iTempPayloadSize > 0 ){
-						sprintf( caDbg, "payload size returned by cacheFile_Bin: %i\n", iTempPayloadSize ); XPLMDebugString(caDbg);
-					
-						iPayloadSize = htmlSendBinary(header, html, generic_cache, iTempPayloadSize, tmpFileType);
-						//iPayloadSize = htmlSendImagePNG( header, html, img_shadow, &img_shadow_size );
-					
-						free( generic_cache );
-					}else{
-						iPayloadSize = html404Document( header, html, requestString, queryString );
-					}
+						
+						
+						//iPayloadSize = htmlGeneric( header, html, hack_blob );
+						
+						
 
-				}
+							//Use a custom socket write handler for ixplc packets.
+								//we have processed the request and gathered some kind of HTTP response.
+								//time to write it to the client.
+									sockOut = fdopen( c, "w" );
+
+										fwrite( hack_blob, strlen(hack_blob), 1, sockOut );
+
+										fflush( sockOut );
+
+									fclose( sockIn );
+									fclose( sockOut );
+
+								close( c );
+
+						
+						
+						
+						return;
+						
+					
+					}else{
+					
+						//we could not find a registered filter above, so we'll now look for a static file on disk.
+					
+								
+								//Default resource handler: http://localhost:1312/ -> http://localhost:1312/index.htm
+								if( strcmp( requestString, "/" ) == 0 ){
+									sprintf( requestString, "/index.htm" );
+								}
+								
+								
+								
+								char webRoot[1024];
+								findWebRoot( webRoot );
+								sprintf( caDbg, "webroot: %s\n", webRoot ); XPLMDebugString(caDbg);
+								
+								int iTempPayloadSize=0;
+								
+								char tmpFilename[2048];
+								sprintf( tmpFilename, "html%s", requestString );
+								sprintf( caDbg, "Attempting to open and temp-cache the file: %s\n", tmpFilename ); XPLMDebugString(caDbg);
+								
+								
+								//fixme; make the file-extension detector work with more than just three letter extensions.
+								char tmpFileType[5];
+								memset(	tmpFileType, 0, 5 );
+								memcpy(
+										tmpFileType,
+										tmpFilename + (strlen(tmpFilename)-4), 
+										4
+										); //this should give us the file extension.
+								
+								sprintf( caDbg, "File extension: %s\n", tmpFileType ); XPLMDebugString(caDbg);
+								
+								
+								
+								//fixme; check requested filename for ".." parent dir strings
+								
+								//todo; detect file type...
+								cacheFile_Bin(webRoot, tmpFilename, &generic_cache, &iTempPayloadSize);
+								
+								if( iTempPayloadSize > 0 ){
+									sprintf( caDbg, "payload size returned by cacheFile_Bin: %i\n", iTempPayloadSize ); XPLMDebugString(caDbg);
+								
+									iPayloadSize = htmlSendBinary(header, html, generic_cache, iTempPayloadSize, tmpFileType);
+									//iPayloadSize = htmlSendImagePNG( header, html, img_shadow, &img_shadow_size );
+								
+									free( generic_cache );
+								}else{
+									iPayloadSize = html404Document( header, html, requestString, queryString );
+								}
+								
+					} //end check for registered filter for uri
+
+				} //end of checks for builts-ins, registered-filters and static-files
 				
 				
 				

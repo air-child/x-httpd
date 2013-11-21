@@ -20,6 +20,9 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 
 
 
+char hack_blob[8192];
+
+
 
 int sock; //the server socket
 
