@@ -1,0 +1,150 @@
+<script src='./js/ajax_helper.js'></script>
+
+
+
+<div id="slider">
+visibility: 160.934m <input id="slide" type="range"
+ min="160.934" max="160394.0" step="1" value="64000"
+ onchange="updateSlider_Visibility(this.value)" />
+ 160394m
+</div><br/>
+
+
+
+<div id="slider">
+precipitation: 0% <input id="slide" type="range"
+ min="0" max="1.0" step="0.01" value="1.0"
+ onchange="updateSlider_Precip(this.value)" />
+ 100%
+</div><br/>
+
+
+
+
+<div id="slider">
+storms: 0% <input id="slide" type="range"
+ min="0" max="1.0" step="0.01" value="1.0"
+ onchange="updateSlider_Storms(this.value)" />
+ 100%
+</div><br/>
+
+
+<div id="slider">
+turbulence: 0% <input id="slide" type="range"
+ min="0" max="1.0" step="0.01" value="1.0"
+ onchange="updateSlider_Turb(this.value)" />
+ 100%
+</div><br/>
+
+
+
+
+<!-- input type='button' value='update x-plane' onclick='update_clicked();' -->
+
+
+<script>
+
+
+
+function updateSlider_Turb( newValue ){
+
+	var cb_f = function( data, uri ){
+		console.log( data );
+	};
+
+	//rain
+	var uri = "/set?type=float&dref=sim/weather/wind_turbulence_percent&val=" + newValue;
+	xmlGetRequest( uri, cb_f );
+
+}
+
+
+
+
+function updateSlider_Storms( newValue ){
+
+	var cb_f = function( data, uri ){
+		console.log( data );
+	};
+
+	//rain
+	var uri = "/set?type=float&dref=sim/weather/thunderstorm_percent&val=" + newValue;
+	xmlGetRequest( uri, cb_f );
+
+}
+
+
+
+
+function updateSlider_Precip( newValue ){
+
+	var cb_f = function( data, uri ){
+		console.log( data );
+	};
+
+	//rain
+	var uri = "/set?type=float&dref=sim/weather/rain_percent&val=" + newValue;
+	xmlGetRequest( uri, cb_f );
+
+}
+
+
+
+function updateSlider_Visibility( newValue ){
+
+	var cb_f = function( data, uri ){
+		console.log( data );
+	};
+
+	//rain
+	var uri = "/set?type=float&dref=sim/weather/visibility_reported_m&val=" + newValue;
+	xmlGetRequest( uri, cb_f );
+
+}
+
+
+function update_clicked(){
+	wx.setVis();
+	
+	var cb_f = function( data, uri ){
+		console.log( data );
+	};
+
+
+	//storms
+	var uri = "/set?type=float&dref=sim/weather/&val=" + parseFloat( document.getElementById('txtStorms').value );
+	xmlGetRequest( uri, cb_f );
+
+	//turbulence
+	var uri = "/set?type=float&dref=sim/weather/&val=" + parseFloat( document.getElementById('txtTurb').value );
+	xmlGetRequest( uri, cb_f );
+
+	
+	
+}
+
+
+
+
+function cb_getWeatherVis( data, uri ){
+
+	//console.error(data);
+	var response = JSON.parse( data );
+	
+	if( response.result ){		
+		//document.getElementById('txtVis').value = response.value;
+		
+	}else{
+		console.error(data);
+	}
+}
+
+
+var dref_vis = "sim/weather/visibility_reported_m";
+xmlGetRequest("/get?dref=" + dref_vis + "&type=float", cb_getWeatherVis);
+
+
+
+
+
+</script>
