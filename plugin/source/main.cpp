@@ -41,10 +41,6 @@ PLUGIN_API int XPluginStart(
 		XPLMDebugString( caDbg );
 
 		
-		//EXPERIMENTAL: filter registration.
-		xhttpd_mapResourceMap["/gizmo"] = "gizmo.x-plugins.com";
-
-
 
 
         gMenu = XPLMCreateMenu(
@@ -634,6 +630,8 @@ PLUGIN_API void XPluginReceiveMessage(
     void *      inParam){
     
 
+	char caDbg[1024];
+
 
 	char outName[1024];
 	char outPath[1024];
@@ -648,18 +646,40 @@ PLUGIN_API void XPluginReceiveMessage(
 		
 		XPLMDebugString("x-httpd: ixplc msg from: gizmo\n");
 		
+		long REG_URI = 0x0100c0de;
 		long SEND_BLOB = 0x0100b10b;
+		
 		if( inMessage == SEND_BLOB ){
+			//This code buffers data returning from other plugins.
+			//We use the buffer elsewhere to complete http client requests.
 		
-			XPLMDebugString("\n");
-			XPLMDebugString( (char*) inParam );
-			XPLMDebugString("\n");
+			int packet_size;
+			memcpy( &packet_size, inParam, 4 );
 			
+			sprintf( caDbg, "x-httpd: blob size: %i bytes\n", packet_size );
 			
-			strcpy( hack_blob, (char*) inParam );
+			//basic hack_blob protection.
+			if( packet_size < 8129 ){
 			
+				memset( hack_blob,0,8192 ); //reset target buffer.
+				memcpy( hack_blob, (char*)inParam+4, packet_size );
+				
+				XPLMDebugString("x-httpd: hack_blob filled.\n");
+			
+			}
 		
-		}
+				
+		}else if( inMessage == REG_URI ){
+
+			//xhttpd_mapResourceMap["/gizmo"] = "gizmo.x-plugins.com";
+			
+			sprintf( caDbg, "x-httpd: register uri: %s -> %s\n", (char*)inParam, outSig );
+			XPLMDebugString( caDbg );
+			
+			xhttpd_mapResourceMap[ (char*)inParam ] = outSig;
+			
+				
+		}//end if-tree
 		
 	}
 	

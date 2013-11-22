@@ -754,20 +754,32 @@ void processConnection( int c ){
 
 		sockIn = fdopen( c, "r" );
 			
+			
+			
+			// ------ This read loop code needs replacing. ;-)
+			
 			//**this has been replaced with a global char* that is malloced.
 			//char inbuf[INBUF_SIZE];
 			
 			memset(inbuf, 0, INBUF_SIZE);
-
-			fread( inbuf, INBUF_SIZE, 1, sockIn ); //read off the socket as fast as possible.
+			size_t inbuf_bytes_read = 0;
 			
+			inbuf_bytes_read = fread( inbuf, INBUF_SIZE, 1, sockIn ); //read off the socket as fast as possible.
+			
+			/*
 			//if there is no data, we'll hang around trying to read until there is!
 			int read_retries = 0;
-			do{
+			while( inbuf_bytes_read < 10 || read_retries < 50 );{
+				XPLMDebugString("####");
 				usleep( 1000 );
-				fread( inbuf, INBUF_SIZE, 1, sockIn );
+				inbuf_bytes_read += fread( inbuf, INBUF_SIZE, 1, sockIn );
 				read_retries++; //avoid DoS from open socket.
-			}while( strlen( inbuf ) < 1 && read_retries < 50 );
+			}
+			*/
+			
+			// --- please?
+			
+			
 			
 		
 			if( bLogDebugToConsole ){
@@ -1041,18 +1053,34 @@ void processConnection( int c ){
 							//we located the desired plugin, lets send it a message.
 							long SEND_BLOB = 0x0100b10b;
 							XPLMDebugString("x-httpd: sending ixplc blob..\n");
-							XPLMSendMessageToPlugin( target, SEND_BLOB, (void*)inbuf );
+							
+							//we need to wrap the input buffer in a very small header to make it blob safe.
+							int packet_size = strlen(inbuf);;
+							sprintf( caDbg, "  blob size: %i (%li)\n", packet_size, inbuf_bytes_read);
+							XPLMDebugString(caDbg);
+							
+							char* new_packet = (char*)malloc( packet_size+4 );
+								memset( new_packet, 0, packet_size+4 );
+								
+								memcpy( new_packet, &packet_size, 4 );
+								memcpy( new_packet+4, inbuf, packet_size );
+							
+								XPLMSendMessageToPlugin( target, SEND_BLOB, (void*)new_packet );
+							
+							XPLMDebugString("  erasing packet memory.\n");
+							memset( new_packet, 0, packet_size+4 );
+							free( new_packet );
 							
 							//data for this exchange will be returned inside the function: XPluginReceiveMessage
-							//hmm..
+							//IF we rx an immediate response from the target plugin then the code below can run immediately.
 
 						}
 						
 						
-						//iPayloadSize = htmlGeneric( header, html, hack_blob );
+						//if we did not rx a reply from the filter plugin a 500 error will be written.
 						
+						//Code currently expects synchronous response.
 						
-
 							//Use a custom socket write handler for ixplc packets.
 								//we have processed the request and gathered some kind of HTTP response.
 								//time to write it to the client.
@@ -1066,6 +1094,13 @@ void processConnection( int c ){
 									fclose( sockOut );
 
 								close( c );
+								
+								
+								//erase the xfer blob and re-write it with a 500 server error.
+								//if the IPC code fails because a plugin does not answer (disabled/unloaded/etc)
+								//the server will return a 500 server error packet for the requested item
+								memset( hack_blob, 0, 8192 );
+								sprintf( hack_blob, "HTTP/1.0 500 OK\r\n\r\n500: ixplc failed: timeout." );
 
 						
 						
