@@ -640,11 +640,8 @@ PLUGIN_API void XPluginReceiveMessage(
 
 		XPLMGetPluginInfo( inFromWho, outName, outPath, outSig, outDescription );
 	
-	
-	if( strcmp( outSig, "gizmo.x-plugins.com" ) == 0 ){
-		//message is from gizmo!
 		
-		XPLMDebugString("x-httpd: ixplc msg from: gizmo\n");
+		sprintf( caDbg, "x-httpd: ixplc msg from: %s\n", outSig ); XPLMDebugString( caDbg );
 		
 		long REG_URI = 0x0100c0de;
 		long SEND_BLOB = 0x0100b10b;
@@ -681,7 +678,6 @@ PLUGIN_API void XPluginReceiveMessage(
 				
 		}//end if-tree
 		
-	}
 	
 	
 	
