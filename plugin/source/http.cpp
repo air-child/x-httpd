@@ -758,25 +758,44 @@ void processConnection( int c ){
 			
 			// ------ This read loop code needs replacing. ;-)
 			
-			//**this has been replaced with a global char* that is malloced.
-			//char inbuf[INBUF_SIZE];
-			
-			memset(inbuf, 0, INBUF_SIZE);
-			size_t inbuf_bytes_read = 0;
-			
-			inbuf_bytes_read = fread( inbuf, INBUF_SIZE, 1, sockIn ); //read off the socket as fast as possible.
-			
-			/*
-			//if there is no data, we'll hang around trying to read until there is!
-			int read_retries = 0;
-			while( inbuf_bytes_read < 10 || read_retries < 50 );{
-				XPLMDebugString("####");
-				usleep( 1000 );
-				inbuf_bytes_read += fread( inbuf, INBUF_SIZE, 1, sockIn );
-				read_retries++; //avoid DoS from open socket.
-			}
-			*/
-			
+				//**this has been replaced with a global char* that is malloced.
+				//char inbuf[INBUF_SIZE];
+				
+				sprintf( caDbg, "x-httpd: processConnection(c)..\n" ); XPLMDebugString(caDbg);
+				
+				memset(inbuf, 0, INBUF_SIZE);
+				size_t bytes_read = 0;
+				size_t chunk_size = 0;
+				
+				do{
+					chunk_size = fread( inbuf + bytes_read, 1, 1, sockIn );
+					bytes_read += chunk_size;
+					sprintf( caDbg, "  chunk read: %li bytes\n", chunk_size ); XPLMDebugString(caDbg);
+					usleep( 100 ); //do we need this?
+				}while( chunk_size > 0 );
+				
+				
+				//usleep( 1000 );
+				//inbuf_bytes_read = fread( inbuf, INBUF_SIZE, 1, sockIn ); //read off the socket as fast as possible.
+				//sprintf( caDbg, "  1st read: %li bytes\n", inbuf_bytes_read ); XPLMDebugString(caDbg);
+
+				/*
+				//if there is no data, we'll hang around trying to read until there is!
+				int read_retries = 0;
+				//while( inbuf_bytes_read < 10 && read_retries < 50 );{
+				while( read_retries < 50 );{
+					XPLMDebugString("####");
+					usleep( 100 );
+					size_t chunk_size = fread( inbuf, 8, 1, sockIn );
+					inbuf_bytes_read += chunk_size;
+					sprintf( caDbg, "x-httpd: chunk read: %li bytes\n", chunk_size ); XPLMDebugString(caDbg);
+					sprintf( caDbg, "x-httpd: total read: %li bytes\n", inbuf_bytes_read ); XPLMDebugString(caDbg);
+
+					read_retries++; //avoid DoS from open socket.
+				}
+				*/
+				
+				
 			// --- please?
 			
 			
@@ -1056,7 +1075,7 @@ void processConnection( int c ){
 							
 							//we need to wrap the input buffer in a very small header to make it blob safe.
 							int packet_size = strlen(inbuf);;
-							sprintf( caDbg, "  blob size: %i (%li)\n", packet_size, inbuf_bytes_read);
+							sprintf( caDbg, "  blob size: %i (%li)\n", packet_size, bytes_read);
 							XPLMDebugString(caDbg);
 							
 							char* new_packet = (char*)malloc( packet_size+4 );
