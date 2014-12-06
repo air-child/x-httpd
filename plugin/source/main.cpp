@@ -725,7 +725,7 @@ void initSockets(){
 
 #pragma mark Other
 //this is an example flight loop function, it is not mandatory
-PLUGIN_API float MyFlightLoopCallback(
+float MyFlightLoopCallback(
                                    float                inElapsedSinceLastCall,    
                                    float                inElapsedTimeSinceLastFlightLoop,    
                                    int                  inCounter,    
@@ -885,7 +885,7 @@ void findWebRoot( char *buffer ){
 	//printf("plugin folder: %s\n", pluginFolderPath );
 
 	#if APL
-		sprintf( buffer, "%sx-httpd.x-plugin/root/", pluginFolderPath );
+		sprintf( buffer, "%sx-httpd.x-plugin/x-httpd-content/", pluginFolderPath );
 
 	#endif
 

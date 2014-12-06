@@ -97,7 +97,7 @@ PLUGIN_API void XPluginReceiveMessage(
 
 #pragma mark Other
 //this is an example flight loop function, it is not mandatory
-PLUGIN_API float MyFlightLoopCallback(
+float MyFlightLoopCallback(
                                    float                inElapsedSinceLastCall,    
                                    float                inElapsedTimeSinceLastFlightLoop,    
                                    int                  inCounter,    

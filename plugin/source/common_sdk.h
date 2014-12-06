@@ -20,21 +20,21 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 #define x_httpd_common_sdk_h
 
 
-#include "XPLMDisplay.h"
-#include "XPLMUtilities.h"
-#include "XPLMDataAccess.h"
-#include "XPLMProcessing.h"
+#include <XPLMDisplay.h>
+#include <XPLMUtilities.h>
+#include <XPLMDataAccess.h>
+#include <XPLMProcessing.h>
 
-#include "XPLMNavigation.h"
+#include <XPLMNavigation.h>
 
-#include "XPLMPlugin.h"
+#include <XPLMPlugin.h>
 
-#include "XPLMMenus.h"
+#include <XPLMMenus.h>
 
-#include "XPStandardWidgets.h"
-#include "XPWidgets.h"
-#include "XPWidgetDefs.h"
-#include "XPWidgetUtils.h"
+#include <XPStandardWidgets.h>
+#include <XPWidgets.h>
+#include <XPWidgetDefs.h>
+#include <XPWidgetUtils.h>
 
 
 

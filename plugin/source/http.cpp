@@ -768,10 +768,10 @@ void processConnection( int c ){
 				size_t chunk_size = 0;
 				
 				do{
-					chunk_size = fread( inbuf + bytes_read, 1, 1, sockIn );
+					chunk_size = fread( inbuf + bytes_read, 64, 1, sockIn );
 					bytes_read += chunk_size;
 					sprintf( caDbg, "  chunk read: %li bytes\n", chunk_size ); XPLMDebugString(caDbg);
-					usleep( 100 ); //do we need this?
+					//usleep( 100 ); //do we need this?
 				}while( chunk_size > 0 );
 				
 				
@@ -830,6 +830,7 @@ void processConnection( int c ){
 
 
 
+		//Parse the request header for it's METHOD, Query String and protocol version.
 		int iX=0;
 		int iStringLen = strlen( inbuf );
 		for(iX=0; iX<iStringLen; iX++){
@@ -858,7 +859,8 @@ void processConnection( int c ){
 					break;
 			}
 		}//end of for loop.
-
+		
+		
 			//loop again, this time looking for the query string
 				if( iQueryStringStart > -1 ){
 					for(iX=iQueryStringStart; iX<iStringLen; iX++){
@@ -917,6 +919,9 @@ void processConnection( int c ){
 
 
 
+
+
+		//FIXME: Entity decoding is a hack.
 			//time to repair the request and query string data
 			
 			std::string fixUrlEntities = queryString;
