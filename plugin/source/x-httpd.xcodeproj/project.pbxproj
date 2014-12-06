@@ -32,8 +32,6 @@
 		233DFB550921C2B80008D35B /* b64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = b64.cpp; sourceTree = "<group>"; };
 		234964F2183B9526001F6498 /* http.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = http.cpp; sourceTree = "<group>"; };
 		234964F3183B9526001F6498 /* http.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = http.h; sourceTree = "<group>"; };
-		234964F6183B9536001F6498 /* gui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gui.cpp; sourceTree = "<group>"; };
-		234964F7183B9536001F6498 /* gui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gui.h; sourceTree = "<group>"; };
 		234964FA183B9644001F6498 /* global_defs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = global_defs.h; sourceTree = "<group>"; };
 		234964FB183B992E001F6498 /* common_sdk.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = common_sdk.h; sourceTree = "<group>"; };
 		234964FC183B99B0001F6498 /* drefs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = drefs.cpp; sourceTree = "<group>"; };
@@ -97,8 +95,6 @@
 				233DFB550921C2B80008D35B /* b64.cpp */,
 				234964F2183B9526001F6498 /* http.cpp */,
 				234964F3183B9526001F6498 /* http.h */,
-				234964F6183B9536001F6498 /* gui.cpp */,
-				234964F7183B9536001F6498 /* gui.h */,
 				23496501183BB82E001F6498 /* global_defs.cpp */,
 				234964FA183B9644001F6498 /* global_defs.h */,
 				234964FB183B992E001F6498 /* common_sdk.h */,
@@ -163,6 +159,8 @@
 /* Begin PBXProject section */
 		089C1669FE841209C02AAC07 /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+			};
 			buildConfigurationList = 231200FA097686C7001D8B3E /* Build configuration list for PBXProject "x-httpd" */;
 			compatibilityVersion = "Xcode 2.4";
 			developmentRegion = English;
@@ -234,8 +232,7 @@
 		231200F7097686C7001D8B3E /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
-				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COPY_PHASE_STRIP = NO;
 				DEBUGGING_SYMBOLS = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -255,7 +252,7 @@
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
 				GCC_WARN_UNKNOWN_PRAGMAS = NO;
-				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_1)";
+				HEADER_SEARCH_PATHS = "../../../XP_SDK_213/**";
 				HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/../../../../../Desktop/GizmoVMSharedDev/RamHog/SDK_211/CHeaders\"/**";
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
@@ -284,8 +281,7 @@
 		231200F8097686C7001D8B3E /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
-				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -303,7 +299,7 @@
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
 				GCC_WARN_UNKNOWN_PRAGMAS = NO;
-				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_1)";
+				HEADER_SEARCH_PATHS = "../../../XP_SDK_213/**";
 				HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/../../../../../Desktop/GizmoVMSharedDev/RamHog/SDK_211/CHeaders\"/**";
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
@@ -332,8 +328,7 @@
 		231200F9097686C7001D8B3E /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
-				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_ENABLE_TRIGRAPHS = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -349,7 +344,7 @@
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
 				GCC_WARN_UNKNOWN_PRAGMAS = NO;
-				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_1)";
+				HEADER_SEARCH_PATHS = "../../../XP_SDK_213/**";
 				HEADER_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)/../../../../../Desktop/GizmoVMSharedDev/RamHog/SDK_211/CHeaders\"/**";
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Library/Bundles";
