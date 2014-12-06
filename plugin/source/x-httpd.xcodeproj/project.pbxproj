@@ -15,6 +15,8 @@
 		234964FE183B99B0001F6498 /* drefs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 234964FC183B99B0001F6498 /* drefs.cpp */; };
 		234964FF183B99B0001F6498 /* drefs.h in Headers */ = {isa = PBXBuildFile; fileRef = 234964FD183B99B0001F6498 /* drefs.h */; };
 		23496502183BB82E001F6498 /* global_defs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 23496501183BB82E001F6498 /* global_defs.cpp */; };
+		239EF5AB1A32FE1300A0715F /* mime_types.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 239EF5A91A32FE1300A0715F /* mime_types.cpp */; };
+		239EF5AC1A32FE1300A0715F /* mime_types.h in Headers */ = {isa = PBXBuildFile; fileRef = 239EF5AA1A32FE1300A0715F /* mime_types.h */; };
 		23BBB5B8183E6C01001E3038 /* ixplc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 23BBB5B6183E6C01001E3038 /* ixplc.cpp */; };
 		23BBB5B9183E6C01001E3038 /* ixplc.h in Headers */ = {isa = PBXBuildFile; fileRef = 23BBB5B7183E6C01001E3038 /* ixplc.h */; };
 		8D01CCC80486CAD60068D4B7 /* x-httpd_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = 32BAE0B30371A71500C91783 /* x-httpd_Prefix.pch */; };
@@ -38,6 +40,8 @@
 		234964FD183B99B0001F6498 /* drefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = drefs.h; sourceTree = "<group>"; };
 		23496500183BB7B5001F6498 /* common_includes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = common_includes.h; sourceTree = "<group>"; };
 		23496501183BB82E001F6498 /* global_defs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = global_defs.cpp; sourceTree = "<group>"; };
+		239EF5A91A32FE1300A0715F /* mime_types.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mime_types.cpp; sourceTree = "<group>"; };
+		239EF5AA1A32FE1300A0715F /* mime_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mime_types.h; sourceTree = "<group>"; };
 		23BBB5B6183E6C01001E3038 /* ixplc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ixplc.cpp; sourceTree = "<group>"; };
 		23BBB5B7183E6C01001E3038 /* ixplc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ixplc.h; sourceTree = "<group>"; };
 		32BAE0B30371A71500C91783 /* x-httpd_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "x-httpd_Prefix.pch"; sourceTree = "<group>"; };
@@ -103,6 +107,8 @@
 				23496500183BB7B5001F6498 /* common_includes.h */,
 				23BBB5B6183E6C01001E3038 /* ixplc.cpp */,
 				23BBB5B7183E6C01001E3038 /* ixplc.h */,
+				239EF5A91A32FE1300A0715F /* mime_types.cpp */,
+				239EF5AA1A32FE1300A0715F /* mime_types.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -122,6 +128,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				239EF5AC1A32FE1300A0715F /* mime_types.h in Headers */,
 				8D01CCC80486CAD60068D4B7 /* x-httpd_Prefix.pch in Headers */,
 				2316C5DB07CE06E400C86874 /* main.h in Headers */,
 				233DFB560921C2B80008D35B /* b64.h in Headers */,
@@ -212,6 +219,7 @@
 				234964FE183B99B0001F6498 /* drefs.cpp in Sources */,
 				23496502183BB82E001F6498 /* global_defs.cpp in Sources */,
 				23BBB5B8183E6C01001E3038 /* ixplc.cpp in Sources */,
+				239EF5AB1A32FE1300A0715F /* mime_types.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
