@@ -40,14 +40,7 @@ extern void parseQuerystringForString( char *key, char *ret, int retSize );
 
 extern void header401Deny( char *header );
 
-extern void header200OK_HTM( char *header );
-extern void header200OK_TXT( char *header );
-extern void header200OK_CSS( char *header );
-extern void header200OK_XML( char *header );
-extern void header200OK_PNG( char *header );
-extern void header200OK_ICO( char *header );
-extern void header200OK_SWF( char *header );
-extern void header200OK_OctetStream( char *header );
+extern void header200OK_MIME( char *header, const char* mime_string );
 
 extern void header404NF( char *header );
 

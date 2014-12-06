@@ -43,82 +43,17 @@ void header401Deny( char *header ){
 
 
 
-void header200OK_HTM( char *header ){
-	sprintf( header, "%s", 	
+
+void header200OK_MIME( char *header, const char* mime_string ){
+	sprintf( header, 
 						"HTTP/1.0 200 OK\n"	
 						"Server: " X_HTTPD_VERSION_STRING "\n"
-						"Content-type: text/html\n"
-						//"\n"
-			);
-
-}
-
-void header200OK_CSS( char *header ){
-	sprintf( header, "%s", 	
-						"HTTP/1.0 200 OK\n"	
-						"Server: " X_HTTPD_VERSION_STRING "\n"
-						"Content-type: text/css\n"
-						//"\n"
-			);
-
-}
-
-void header200OK_TXT( char *header ){
-	sprintf( header, "%s", 	
-						"HTTP/1.0 200 OK\n"	
-						"Server: " X_HTTPD_VERSION_STRING "\n"
-						"Content-type: text/plain\n"
-						//"\n"
-			);
-
-}
-
-void header200OK_XML( char *header ){
-	sprintf( header, "%s",
-						"HTTP/1.0 200 OK\n"
-						"Server: " X_HTTPD_VERSION_STRING "\n"
-						"Content-Type: application/xml\n"
-						//"\n"
+						"Content-type: %s\n",
+						
+						mime_string
 			);
 }
 
-
-void header200OK_SWF( char *header ){
-	sprintf( header, "%s",
-						"HTTP/1.0 200 OK\n"
-						"Server: " X_HTTPD_VERSION_STRING "\n"
-						"Content-Type: application/x-shockwave-flash\n"
-						//"\n"
-			);
-}
-
-
-void header200OK_OctetStream( char *header ){
-	sprintf( header, "%s",
-						"HTTP/1.0 200 OK\n"
-						"Server: " X_HTTPD_VERSION_STRING "\n"
-						"Content-Type: application/octet-stream\n"
-						//"\n"
-			);
-}
-
-
-void header200OK_PNG( char *header ){
-	sprintf( header, "%s",
-						"HTTP/1.0 200 OK\n"
-						"Server: " X_HTTPD_VERSION_STRING "\n"
-						"Content-Type: image/png\n"
-						//"\n"
-			);
-}
-void header200OK_ICO( char *header ){
-	sprintf( header, "%s", 
-						"HTTP/1.0 200 OK\n"
-						"Server: " X_HTTPD_VERSION_STRING "\n"
-						"Content-Type: image/x-icon\n"
-						//"\n"
-			);
-}
 
 
 void header404NF( char *header ){
@@ -195,7 +130,7 @@ int htmlAccessDenied( char *header, char *html ){
 
 int htmlGeneric( char *header, char *html, char *payload ){
 
-	header200OK_HTM( header );
+	header200OK_MIME( header, "text/html" );
 
 	sprintf(html, "%s", 
 						payload
@@ -205,85 +140,24 @@ int htmlGeneric( char *header, char *html, char *payload ){
 
 }
 
-/*
-
-int htmlGenericText( char *header, char *html, char *payload ){
-
-	header200OK_TXT( header );
-
-	sprintf(html, "%s", 
-						payload
-						);
-						
-	return strlen( html );
-
-}
-
-int htmlGenericXML( char *header, char *html, char *payload ){
-
-	header200OK_XML( header );
-
-	sprintf(html, "%s", 
-						payload
-						);
-						
-	return strlen( html );
-
-}
-int htmlGenericCSS( char *header, char *html, char *payload ){
-
-	header200OK_CSS( header );
-
-	sprintf(html, "%s", 
-						payload
-						);
-						
-	return strlen( html );
-
-}
-
-int htmlSendImagePNG( char *header, char *html, unsigned char *buffer, int *size ){
-
-	header200OK_PNG( header );
-	
-		memset( html, 0, *size+1 );
-		memcpy( html, buffer, *size );
-
-	return *size;
-
-}
-*/
 
 int htmlSendBinary( char *header, char *html, unsigned char *buffer, int size, char *fileType ){
 
 
-	if( strcmp( fileType, ".htm" ) == 0 ){
-		header200OK_HTM( header );
-
-	}else if( strcmp( fileType, ".txt" ) == 0 ){
-		header200OK_TXT( header );
-
-	}else if( strcmp( fileType, ".css" ) == 0 ){
-		header200OK_CSS( header );
-
-	}else if( strcmp( fileType, ".xml" ) == 0 ){
-		header200OK_XML( header );
-
-	}else if( strcmp( fileType, ".png" ) == 0 ){
-		header200OK_PNG( header );
+	//TODO: upgrade to use iterator.
+	std::string sMimeTypeKey = std::string( fileType );
 	
-	}else if( strcmp( fileType, ".ico" ) == 0 ){
-		header200OK_ICO( header );
-
-	}else if( strcmp( fileType, ".swf" ) == 0 ){
-		header200OK_SWF( header );
+	typedef std::map<std::string, std::string> MapType;
+	MapType::iterator iter;
+		
+	iter = xhttpd_mapMimeTypes.find( sMimeTypeKey );
 	
+	if( iter != xhttpd_mapMimeTypes.end() ){
+		header200OK_MIME( header, iter->second.c_str() );
 	}else{
-		header200OK_OctetStream( header );
-	
+		header200OK_MIME( header, "application/octet-stream" );
 	}
-
-
+	
 		memset( html, 0, size );
 		memcpy( html, buffer, size );
 
@@ -291,8 +165,11 @@ int htmlSendBinary( char *header, char *html, unsigned char *buffer, int size, c
 
 }
 
+
+
+//Universal dataref set.
 int htmlUniSet( char *header, char *html ){
-	header200OK_HTM( header );
+	header200OK_MIME( header, "text/html" );
 	
 	char drefName[1024];
 	char drefType[1024];
@@ -347,11 +224,12 @@ int htmlUniSet( char *header, char *html ){
 }
 
 
+//Universal dataref get..
 int htmlUniGet( char *header, char *html ){
 
 	char caDbg[1024];
 
-	header200OK_HTM( header );
+	header200OK_MIME( header, "text/html" );
 	
 	char drefName[1024];
 	char drefType[1024];
@@ -437,8 +315,6 @@ int htmlUniGet( char *header, char *html ){
 
 int htmlMiscStateXML( char *header, char *html, char *queryString ){
 
-
-
 	//prepare GPS nav data.
 	
 	XPLMNavRef navRef = XPLMGetGPSDestination();
@@ -470,7 +346,7 @@ int htmlMiscStateXML( char *header, char *html, char *queryString ){
 
 	//this function fires as the root(/) url, it relies on /index.xsl for formatting.
 
-		header200OK_XML( header );
+		header200OK_MIME( header, "text/plain" ); //FIXME: XML!
 
 		sprintf(html,
 						"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
@@ -601,7 +477,7 @@ int htmlStateXML( char *header, char *html ){
 
 
 
-		header200OK_XML( header );
+		header200OK_MIME( header, "text/plain" ); //FIXME: XML!
 
 		sprintf(html,
 						"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
@@ -742,6 +618,22 @@ void parseQuerystringForString( char *key, char *ret, int retSize ){
 
 
 
+//init a default set of useful mimetypes
+void init_MimeTypes(){
+
+	xhttpd_mapMimeTypes[".htm"] = "text/html";
+	xhttpd_mapMimeTypes[".js"] = "text/plain"; //FIXME
+	xhttpd_mapMimeTypes[".txt"] = "text/plain";
+	xhttpd_mapMimeTypes[".css"] = "test/css";
+	xhttpd_mapMimeTypes[".xml"] = "application/xml";
+	xhttpd_mapMimeTypes[".png"] = "image/png";
+	xhttpd_mapMimeTypes[".ico"] = "image/x-icon";
+	xhttpd_mapMimeTypes[".swf"] = "application/x-shockwave-flash";
+
+	xhttpd_mapMimeTypes[".bin"] = "application/octet-stream";
+
+}
+
 
 
 
@@ -768,7 +660,7 @@ void processConnection( int c ){
 				size_t chunk_size = 0;
 				
 				do{
-					chunk_size = fread( inbuf + bytes_read, 64, 1, sockIn );
+					chunk_size = fread( inbuf + bytes_read, 1, 1, sockIn );
 					bytes_read += chunk_size;
 					sprintf( caDbg, "  chunk read: %li bytes\n", chunk_size ); XPLMDebugString(caDbg);
 					//usleep( 100 ); //do we need this?
@@ -1041,7 +933,7 @@ void processConnection( int c ){
 		
 				if( strcmp( requestString, "/about" ) == 0 ){
 					//iPayloadSize = htmlGeneric( header, html, (char *)page_index );
-					iPayloadSize = htmlGeneric( header, html, "x-httpd 13.11.20.0015 alpha" );
+					iPayloadSize = htmlGeneric( header, html, "x-httpd 14.12.06.1934 alpha" );
 
 				//these items are dynamic
 				}else if( strcmp( requestString, "/state.xml" ) == 0 ){
