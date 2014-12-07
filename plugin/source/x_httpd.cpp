@@ -26,6 +26,16 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 
 x_httpd::x_httpd( int port ){
 
+	this->sock = 0; //setup by socket init function
+
+	//options to control the server.
+	this->bAllowRemoteConnections = 1;
+	this->bRequirePassword = 0;
+	this->bLogDebugToConsole = 1;
+	
+	//default value for username and password for auth
+	this->sAuthTokenRaw = "username:password";
+
 
 }
 

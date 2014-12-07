@@ -36,9 +36,6 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 
 class x_httpd{
 	private:
-	
-		//char hack_blob[8192]; //used to exchange data via X-Plane IPC, move to main_xpl.cpp
-	
 		int sock;
 		
 		int bAllowRemoteConnections;
@@ -51,15 +48,10 @@ class x_httpd{
 		x_httpd( int port );
 		~x_httpd();
 
-
 		void run(); //endless loop, run forever, CLI.
 		void run_slice( int max_time_usec ); //run a small slice of work
 		
-		
 		void initSockets();
-	
-
-
 
 };
 

@@ -15,92 +15,77 @@
 #include <string>
 #include <vector>
 
-
-
 #include "common_includes.h"
 
-
-#define X_HTTPD_VERSION_STRING "x-httpd v14.12.06.1913 (C) 2005,2013-2014, br@x-plugins.com"
-
+#include "x_httpd_response.h"
 
 
 class x_httpd_request{
 	private:
+
+		int sock_client; //raw socket.
+
+		std::string rawData; //collected by socket reader
+		
+
 		//GET /request/string?query=string HTTP/1.0
-		std::string sMethod;	// GET
-		std::string sRaw;	// /request/string?query=string
-		std::string sRequestString; // /request/string
-		std::string sQueryString;	// query=string
+		std::string requestMode;
+		std::string requestString;	
+		std::string queryString;	
+		std::string httpVersion;
 		
 		std::map<std::string, std::string> map_Headers;
 		
-		std::string sBody;
+		std::string sBody; //body of request, form data, etc.
 		
 		
+
+		std::string authorizationToken; //extracted from http request
+		std::string sAuthTokenB64; //provided by parent
+
 		
-		int sock_client;
+		x_httpd_response response;
 		
-		
-		
+
 		int bLogDebugToConsole;
 		int bRequirePassword;
 		
-		//FIXME: need malloc resources.
-		char* inbuf;		
-		char* response;
-		
-		//refactor artifacts
-		std::string sAuthTokenRaw;
-		std::string sAuthTokenB64;
 
-		unsigned char *generic_cache;
-	
-	
-		//extern std::map<intptr_t, client_handle> xhttpd_mapClientReturnPacketQueue;
-		std::map<std::string, std::string> xhttpd_mapResourceMap; //map: uri -> plugin_id
-		std::map<std::string, std::string> xhttpd_mapMimeTypes;
 
+		std::map<std::string, std::string> mapResourceMap; //map: uri -> plugin_id
 
 		
-		char *queryStringV[1024]; //lookup table for query string values after 1st stage parsing.
+
+		//crude lookup table for query string values after 1st stage parsing.
+		//FIXME: replace with vector or map
+		char *queryStringV[1024]; 
 		int queryStringVCount;
-	
 
 		
-		char webRoot[1024];
+		char webRoot[1024]; //folder path
 		
+		
+		//mapping from filetype -> mime string
+		std::map<std::string, std::string> mapMimeTypes;
+
 	
 	public:
 		x_httpd_request( int sock_client, std::string sAuthTokenB64 );
 		~x_httpd_request();
-
 		
-		void parseQuerystring( char *queryString );
+		
+		
+		void parseRequest(); //decode basic HTTP request
+		
+		void decodeUrlEntities(); //filter URL entities
+		
+		void parseAuthToken(); //parse authentication token
+		
+		
+		void parseQuerystring(); //break down query string
 		int parseQuerystringForInt( char *key );
 		float parseQuerystringForFloat( char *key );
 		void parseQuerystringForString( char *key, char *ret, int retSize );
-
-
-		void header401Deny( char *header );
-		void header200OK_MIME( char *header, const char* mime_string );
-		void header404NF( char *header );
-		
-		
-		int html404Document( char *header, char *html, char *requestString, char *queryString );
-		int htmlAccessDenied( char *header, char *html );
-		int htmlGeneric( char *header, char *html, char *payload );
-
-		int htmlSendBinary( char *header, char *html, unsigned char *buffer, int size, char *fileType );
-
-		//dataref access
-		int htmlUniSet( char *header, char *html );
-		int htmlUniGet( char *header, char *html );
-
-		//summarised state data
-		int htmlMiscStateXML( char *header, char *html, char *queryString );
-		int htmlStateXML( char *header, char *html );
-
-
 
 
 };
