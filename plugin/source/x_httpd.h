@@ -54,8 +54,11 @@ class x_httpd{
 		char *inbuf;
 		char *html;
 		
-		unsigned char *auth_token_raw; //storage for our base64 encoded auth token.
-		unsigned char *auth_token_b64; //storage for our base64 encoded auth token.
+		//unsigned char *auth_token_raw; //storage for our base64 encoded auth token.
+		//unsigned char *auth_token_b64; //storage for our base64 encoded auth token.
+		
+		std::string sAuthTokenRaw;
+		std::string sAuthTokenB64;
 
 		unsigned char *generic_cache;
 	

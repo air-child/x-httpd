@@ -107,14 +107,16 @@ void x_httpd::run_slice( int time_usec ){
 			static int socketsInit = 0;
 			if( ! socketsInit ){
 			
-				if( strcmp("username:password", (const char*)auth_token_raw) == 0 ){
+				if( this->sAuthTokenRaw == "username:password" ){
 					//XPLMSpeakString("x-httpd; This is the first time you have used x-httpd, please change the password.");
 					//dialog_ChangePassword();
+					
+					printf("*** Password Needs Changing ***\n");
 				
 				}
 				
 				printf("Running sockets init...\n");
-				initSockets();
+				this->initSockets();
 				socketsInit = 1;
 			
 			}
@@ -131,9 +133,7 @@ void x_httpd::run_slice( int time_usec ){
 				memset( &from, 0, sizeof( sockaddr_in ));
 				socklen_t len;
 
-				//printf( "foo\n");
-				
-				c = accept( sock, (sockaddr*)&from, &len );				
+				c = accept( this->sock, (sockaddr*)&from, &len );				
 				
 				switch( c ){
 					case EBADF:
@@ -158,14 +158,18 @@ void x_httpd::run_slice( int time_usec ){
 							printf( "x-httpd error: accept() error: Would block.\n" );
 						break;
 					case -1:
+							//This error tends to repeat a lot.
+							//printf( "x-httpd error: accept() error: -1, see errono.\n" );
+							
 						break;
 					default:
-						//printf("accept()ed a connect: %i\n", c);
+						printf("accept()ed a connect: %i\n", c);
 						
 						char remoteAddress[32];
 							strcpy( remoteAddress, inet_ntoa(from.sin_addr) );
 							
 							sprintf( caDbg, "\nx-httpd: request from: %s\n", remoteAddress );
+							printf( caDbg );
 							//XPLMDebugString(caDbg);
 							
 							
@@ -183,6 +187,7 @@ void x_httpd::run_slice( int time_usec ){
 							
 								sprintf( caDbg, "x-httpd: Access Denied: allow_remote: %i\n", bAllowRemoteConnections );
 								//XPLMDebugString(caDbg);
+								printf( caDbg );
 							
 								//htmlAccessDenied
 								//TODO: send basic hard coded http packet with denied message
@@ -218,11 +223,11 @@ void x_httpd::initSockets(){
 		struct sockaddr_in sin;
 		
 		sin.sin_family=AF_INET;
-		sin.sin_port= htons(1312);
+		sin.sin_port=htons(1312);
 			//net_aton("127.0.0.1", &(sin.sin_addr));
 		sin.sin_addr.s_addr= htonl(INADDR_ANY);
 
-		sock = socket( AF_INET, SOCK_STREAM, 0 );
+		this->sock = socket( AF_INET, SOCK_STREAM, 0 );
 		
 		int sflag = 1;
 		setsockopt( sock, SOL_SOCKET, SO_REUSEADDR, (char*)&sflag, sizeof(int) );
@@ -236,7 +241,7 @@ void x_httpd::initSockets(){
 			return;
 		}else{
 			listen( sock, 5 );
-			printf("Socket listening on port %i.\n", sin.sin_port);
+			printf("Socket listening on port %i.\n", ntohs(sin.sin_port));
 		}
 	
 
@@ -1135,7 +1140,11 @@ void x_httpd::processConnection( int c ){
 		
 		int iPayloadSize = 0;
 
-		if( (strcmp(authorizationToken.c_str(), (const char *)auth_token_b64) == 0) || ( ! bRequirePassword ) ){
+		if( 
+			( authorizationToken == this->sAuthTokenB64 ) 
+			|| ( ! bRequirePassword ) 
+		){
+		
 			if( bLogDebugToConsole ){
 				//sprintf( caDbg, "Authorization is good!\n"); XPLMDebugString(caDbg);
 			}

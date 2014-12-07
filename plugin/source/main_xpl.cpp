@@ -599,8 +599,6 @@ PLUGIN_API void XPluginStop(void){
 
 	cleanupFileCache();
 
-	close( sock ); //close the server socket.
-
 }
 
 
