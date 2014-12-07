@@ -200,6 +200,7 @@ VERSION HISTORY:
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*
 ** Translation Table as described in RFC1113

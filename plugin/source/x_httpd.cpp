@@ -16,21 +16,240 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 //
 //
 
-#include "http.h"
-
-
-#include "common_sdk.h"
+#include "x_httpd.h"
 
 #include "common_includes.h"
 
 
-char *queryStringV[1024]; //lookup table for query string values after 1st stage parsing.
-int queryStringVCount = 0;
+
+x_httpd::x_httpd( int port ){
+
+	this->queryStringVCount = 0;
+	
+	//10 meg buffer.
+	#define BUFSIZE 1024*1024*10
+	this->inbuf = (char*)malloc( BUFSIZE );
+	this->html = (char*)malloc( BUFSIZE );
+
+
+
+	this->xhttpd_mapMimeTypes[".htm"] = "text/html";
+	this->xhttpd_mapMimeTypes[".js"] = "text/plain"; //FIXME
+	this->xhttpd_mapMimeTypes[".txt"] = "text/plain";
+	this->xhttpd_mapMimeTypes[".css"] = "test/css";
+	this->xhttpd_mapMimeTypes[".xml"] = "application/xml";
+	this->xhttpd_mapMimeTypes[".png"] = "image/png";
+	this->xhttpd_mapMimeTypes[".ico"] = "image/x-icon";
+	this->xhttpd_mapMimeTypes[".swf"] = "application/x-shockwave-flash";
+
+	this->xhttpd_mapMimeTypes[".bin"] = "application/octet-stream";
+
+
+
+}
+
+x_httpd::~x_httpd(){
+	free( this->inbuf );
+	free( this->html );
+	
+	//We'll do this another way..
+	//free( this->auth_token_raw );
+	//free( this->auth_token_b64 );
+}
 
 
 
 
-void header401Deny( char *header ){
+
+/**
+Set the root content folder.
+*/
+/*
+void x_httpd::setRootFolder( const char* target_folder ){
+
+	strcpy(this->content_folder, target_folder);
+
+}
+*/
+
+
+void x_httpd::run(){
+
+	for(;;){
+	
+		this->run_slice( 10 );
+		
+		//we should probably usleep or something
+		usleep( 10 );
+	
+	}
+}
+
+
+
+void x_httpd::run_slice( int time_usec ){
+
+	//get time start
+	//loop over work
+		//do single work item
+		//check time delta
+		//if time delta > time_usec allowance, return
+	//loop over more work
+	
+
+
+
+
+
+		char caDbg[1024];
+
+
+			static int socketsInit = 0;
+			if( ! socketsInit ){
+			
+				if( strcmp("username:password", (const char*)auth_token_raw) == 0 ){
+					//XPLMSpeakString("x-httpd; This is the first time you have used x-httpd, please change the password.");
+					//dialog_ChangePassword();
+				
+				}
+				
+				printf("Running sockets init...\n");
+				initSockets();
+				socketsInit = 1;
+			
+			}
+
+
+			int c = 0; //client socket, populated by accept(...)
+			int clientCount = 0;
+			do{
+				clientCount++;
+			
+				if( clientCount >= 10 ){ break; } //we want to give x-plane priority, 10 clients per frame event.
+			
+				struct sockaddr_in from;
+				memset( &from, 0, sizeof( sockaddr_in ));
+				socklen_t len;
+
+				//printf( "foo\n");
+				
+				c = accept( sock, (sockaddr*)&from, &len );				
+				
+				switch( c ){
+					case EBADF:
+							printf("x-httpd error: Bad file descriptor.\n");
+						break;
+					case ENOTSOCK:
+							printf("x-httpd error: accept() error: Not a socket.\n");
+						break;
+					case EOPNOTSUPP:
+							printf("x-httpd error: accept() error: Socket is not a STREAM.\n");
+						break;
+					case EFAULT:
+							printf("x-httpd error: accept() error: Address parameter fault.\n");
+						break;
+					case EWOULDBLOCK:
+							printf( "x-httpd error: accept() error: Would block.\n" );
+						break;
+					case EMFILE:
+							printf( "x-httpd error: accept() error: Process file table is full.\n" );
+						break;
+					case ENFILE:
+							printf( "x-httpd error: accept() error: Would block.\n" );
+						break;
+					case -1:
+						break;
+					default:
+						//printf("accept()ed a connect: %i\n", c);
+						
+						char remoteAddress[32];
+							strcpy( remoteAddress, inet_ntoa(from.sin_addr) );
+							
+							sprintf( caDbg, "\nx-httpd: request from: %s\n", remoteAddress );
+							//XPLMDebugString(caDbg);
+							
+							
+							//if(true){
+							if( (strcmp( "127.0.0.1", remoteAddress ) == 0) || bAllowRemoteConnections ){
+						
+								//ntohl( &(from.sin_addr) );
+								if( bLogDebugToConsole ){
+									printf( "*** Connection from: %s\n", remoteAddress );
+								}
+						
+								processConnection(c);
+								
+							}else{
+							
+								sprintf( caDbg, "x-httpd: Access Denied: allow_remote: %i\n", bAllowRemoteConnections );
+								//XPLMDebugString(caDbg);
+							
+								//htmlAccessDenied
+								//TODO: send basic hard coded http packet with denied message
+							
+								close(c);
+							}
+						break;
+				}
+			}while( c != -1 );
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+void x_httpd::initSockets(){
+
+	//	struct hostent *h;
+	//	if ((h=gethostbyname("localhost")) == NULL) {  /* get the host info */
+      ///      herror("gethostbyname");
+      //      exit(1);
+      //  }
+
+
+		struct sockaddr_in sin;
+		
+		sin.sin_family=AF_INET;
+		sin.sin_port= htons(1312);
+			//net_aton("127.0.0.1", &(sin.sin_addr));
+		sin.sin_addr.s_addr= htonl(INADDR_ANY);
+
+		sock = socket( AF_INET, SOCK_STREAM, 0 );
+		
+		int sflag = 1;
+		setsockopt( sock, SOL_SOCKET, SO_REUSEADDR, (char*)&sflag, sizeof(int) );
+		
+		int sflags = fcntl( sock, F_GETFL );
+		//fcntl( sock, F_SETFL, O_NONBLOCK );
+		fcntl( sock, F_SETFL, sflags | O_NONBLOCK );
+		
+		if( bind( sock, (const sockaddr*)&sin, sizeof(sin) ) != 0 ){
+			printf("x-httpd: Failed to bind server socket to port: %i\n", sin.sin_port);
+			return;
+		}else{
+			listen( sock, 5 );
+			printf("Socket listening on port %i.\n", sin.sin_port);
+		}
+	
+
+}
+
+
+
+
+
+
+
+
+void x_httpd::header401Deny( char *header ){
 	sprintf( header, "%s", 	
 						"HTTP/1.0 401 Access Denied\n" 
 						"Server: " X_HTTPD_VERSION_STRING "\n"
@@ -44,7 +263,7 @@ void header401Deny( char *header ){
 
 
 
-void header200OK_MIME( char *header, const char* mime_string ){
+void x_httpd::header200OK_MIME( char *header, const char* mime_string ){
 	sprintf( header, 
 						"HTTP/1.0 200 OK\n"	
 						"Server: " X_HTTPD_VERSION_STRING "\n"
@@ -56,7 +275,7 @@ void header200OK_MIME( char *header, const char* mime_string ){
 
 
 
-void header404NF( char *header ){
+void x_httpd::header404NF( char *header ){
 	sprintf( header, "%s", 
 						"HTTP/1.0 404 Not Found\n"
 						"Server: " X_HTTPD_VERSION_STRING "\n"
@@ -73,14 +292,16 @@ void header404NF( char *header ){
 
 
 
-int html404Document( char *header, char *html, char *requestString, char *queryString ){
+int x_httpd::html404Document( char *header, char *html, char *requestString, char *queryString ){
 	
-	header404NF( header );
+	this->header404NF( header );
 
 	int appVer, xplmVer;
-	XPLMHostApplicationID appId;
-
-	XPLMGetVersions( &appVer, &xplmVer, &appId );
+	//XPLMHostApplicationID appId;
+	//XPLMGetVersions( &appVer, &xplmVer, &appId );
+	
+	appVer=999;
+	xplmVer=999;
 
 
 	sprintf(html,	
@@ -117,9 +338,9 @@ int html404Document( char *header, char *html, char *requestString, char *queryS
 
 }
 
-int htmlAccessDenied( char *header, char *html ){
+int x_httpd::htmlAccessDenied( char *header, char *html ){
 
-	header401Deny( header );
+	this->header401Deny( header );
 	sprintf( html, "%s", "Access Denied" );
 	
 	return strlen( html );
@@ -128,9 +349,9 @@ int htmlAccessDenied( char *header, char *html ){
 
 
 
-int htmlGeneric( char *header, char *html, char *payload ){
+int x_httpd::htmlGeneric( char *header, char *html, char *payload ){
 
-	header200OK_MIME( header, "text/html" );
+	this->header200OK_MIME( header, "text/html" );
 
 	sprintf(html, "%s", 
 						payload
@@ -141,7 +362,7 @@ int htmlGeneric( char *header, char *html, char *payload ){
 }
 
 
-int htmlSendBinary( char *header, char *html, unsigned char *buffer, int size, char *fileType ){
+int x_httpd::htmlSendBinary( char *header, char *html, unsigned char *buffer, int size, char *fileType ){
 
 
 	//TODO: upgrade to use iterator.
@@ -153,9 +374,9 @@ int htmlSendBinary( char *header, char *html, unsigned char *buffer, int size, c
 	iter = xhttpd_mapMimeTypes.find( sMimeTypeKey );
 	
 	if( iter != xhttpd_mapMimeTypes.end() ){
-		header200OK_MIME( header, iter->second.c_str() );
+		this->header200OK_MIME( header, iter->second.c_str() );
 	}else{
-		header200OK_MIME( header, "application/octet-stream" );
+		this->header200OK_MIME( header, "application/octet-stream" );
 	}
 	
 		memset( html, 0, size );
@@ -168,8 +389,8 @@ int htmlSendBinary( char *header, char *html, unsigned char *buffer, int size, c
 
 
 //Universal dataref set.
-int htmlUniSet( char *header, char *html ){
-	header200OK_MIME( header, "text/html" );
+int x_httpd::htmlUniSet( char *header, char *html ){
+	this->header200OK_MIME( header, "text/html" );
 	
 	char drefName[1024];
 	char drefType[1024];
@@ -178,10 +399,11 @@ int htmlUniSet( char *header, char *html ){
 	memset( drefType, 0, 1024 );
 	
 	
-	parseQuerystringForString( "dref", drefName, 1023 );
-	parseQuerystringForString( "type", drefType, 1023 );
+	this->parseQuerystringForString( "dref", drefName, 1023 );
+	this->parseQuerystringForString( "type", drefType, 1023 );
 	//val is retrieved below depending on the dref type argument.
 	
+	/*
 	XPLMDataRef tmpDr = XPLMFindDataRef( drefName );
 	
 	switch( drefType[0] ){
@@ -205,7 +427,7 @@ int htmlUniSet( char *header, char *html ){
 			}
 			break;		
 	}
-	
+	*/
 	
 	
 	
@@ -225,11 +447,11 @@ int htmlUniSet( char *header, char *html ){
 
 
 //Universal dataref get..
-int htmlUniGet( char *header, char *html ){
+int x_httpd::htmlUniGet( char *header, char *html ){
 
 	char caDbg[1024];
 
-	header200OK_MIME( header, "text/html" );
+	this->header200OK_MIME( header, "text/html" );
 	
 	char drefName[1024];
 	char drefType[1024];
@@ -241,10 +463,12 @@ int htmlUniGet( char *header, char *html ){
 	
 	
 	
-	parseQuerystringForString( "dref", drefName, 1023 );
-	parseQuerystringForString( "type", drefType, 1023 );
+	this->parseQuerystringForString( "dref", drefName, 1023 );
+	this->parseQuerystringForString( "type", drefType, 1023 );
 	//val is retrieved below depending on the dref type argument.
 	
+	
+	/*
 	XPLMDataRef tmpDr = XPLMFindDataRef( drefName );
 	
 	
@@ -296,7 +520,7 @@ int htmlUniGet( char *header, char *html ){
 			}
 			break;		
 	}
-	
+	*/
 	
 	
 	sprintf( html,
@@ -312,14 +536,15 @@ int htmlUniGet( char *header, char *html ){
 }
 
 
-
-int htmlMiscStateXML( char *header, char *html, char *queryString ){
+#if 0
+int x_httpd::htmlMiscStateXML( char *header, char *html, char *queryString ){
 
 	//prepare GPS nav data.
-	
+	/*
 	XPLMNavRef navRef = XPLMGetGPSDestination();
 	XPLMNavType navType;// = XPLMGetGPSDestinationType();
-
+	*/
+	
 	float gpsLat, gpsLon, gpsAlt;
 	int gpsFreq;
 	float gpsHeading;
@@ -327,6 +552,7 @@ int htmlMiscStateXML( char *header, char *html, char *queryString ){
 	char gpsName[256];
 	char gpsReg[256];
 
+	/*
 	XPLMGetNavAidInfo(	
 						navRef,
 						&navType,
@@ -340,13 +566,13 @@ int htmlMiscStateXML( char *header, char *html, char *queryString ){
 						gpsReg
 						);
 
-
+	*/
 
 
 
 	//this function fires as the root(/) url, it relies on /index.xsl for formatting.
 
-		header200OK_MIME( header, "text/plain" ); //FIXME: XML!
+		this->header200OK_MIME( header, "text/plain" ); //FIXME: XML!
 
 		sprintf(html,
 						"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
@@ -446,7 +672,7 @@ int htmlMiscStateXML( char *header, char *html, char *queryString ){
 
 }
 
-int htmlStateXML( char *header, char *html ){
+int x_httpd::htmlStateXML( char *header, char *html ){
 
 	//prepare GPS nav data.
 	
@@ -523,13 +749,14 @@ int htmlStateXML( char *header, char *html ){
 	return strlen( html );
 
 }
+#endif
 
 
 
 
 
 
-void parseQuerystring( char *queryString ){
+void x_httpd::parseQuerystring( char *queryString ){
 
 	memset(queryStringV, 0, sizeof(queryStringV));
 
@@ -545,19 +772,19 @@ void parseQuerystring( char *queryString ){
 		}
 	}
 
-	queryStringVCount = argc;
+	this->queryStringVCount = argc;
 
 	
 }
 
 
-int parseQuerystringForInt( char *key ){
+int x_httpd::parseQuerystringForInt( char *key ){
 	char tmpret[32];
 	parseQuerystringForString( key, tmpret, 32 );
 	
 	return atoi( tmpret );
 }
-float parseQuerystringForFloat( char *key ){
+float x_httpd::parseQuerystringForFloat( char *key ){
 	char tmpret[32];
 	parseQuerystringForString( key, tmpret, 32 );
 	
@@ -566,17 +793,17 @@ float parseQuerystringForFloat( char *key ){
 
 
 //This function is nasty.
-void parseQuerystringForString( char *key, char *ret, int retSize ){
+void x_httpd::parseQuerystringForString( char *key, char *ret, int retSize ){
 
 	char caDbg[1024];
-	sprintf( caDbg, "parsing query string for value of: (%s)\n", key); XPLMDebugString( caDbg );
+	//sprintf( caDbg, "parsing query string for value of: (%s)\n", key); XPLMDebugString( caDbg );
 
 	int x=0;
     char **ap, *argv[2];//, *kv;
 
 	for(x=0; x<queryStringVCount; x++){
 	
-		sprintf( caDbg, "dref LUT dump: %s\n", queryStringV[x]);  XPLMDebugString( caDbg );
+		//sprintf( caDbg, "dref LUT dump: %s\n", queryStringV[x]);  XPLMDebugString( caDbg );
 	
 			char kv[strlen(queryStringV[x])+1];// = queryStringV[x];
 			strcpy(kv, queryStringV[x]);
@@ -593,13 +820,13 @@ void parseQuerystringForString( char *key, char *ret, int retSize ){
 			//sprintf( caDbg, "parsing: (%s) = (%s)\n", argv[0], argv[1]);  XPLMDebugString( caDbg );
 				
 			if( strcmp( argv[0], key ) == 0 ){
-				sprintf( caDbg, "parser located: (%s) = (%s)\n", argv[0], argv[1]);  XPLMDebugString( caDbg );
+				//sprintf( caDbg, "parser located: (%s) = (%s)\n", argv[0], argv[1]);  XPLMDebugString( caDbg );
 				
 				if( argv[1] != 0 ){
 					if( (int)strlen(argv[1]) < retSize ){ //buff overflow protection
 						strcpy( ret, argv[1] );
 					}else{
-						XPLMDebugString("x-httpd: Error: query string parser: return value overflowed.");
+						//XPLMDebugString("x-httpd: Error: query string parser: return value overflowed.");
 						strcpy( ret, "overflow" );
 					}
 				}else{
@@ -618,27 +845,7 @@ void parseQuerystringForString( char *key, char *ret, int retSize ){
 
 
 
-//init a default set of useful mimetypes
-void init_MimeTypes(){
-
-	xhttpd_mapMimeTypes[".htm"] = "text/html";
-	xhttpd_mapMimeTypes[".js"] = "text/plain"; //FIXME
-	xhttpd_mapMimeTypes[".txt"] = "text/plain";
-	xhttpd_mapMimeTypes[".css"] = "test/css";
-	xhttpd_mapMimeTypes[".xml"] = "application/xml";
-	xhttpd_mapMimeTypes[".png"] = "image/png";
-	xhttpd_mapMimeTypes[".ico"] = "image/x-icon";
-	xhttpd_mapMimeTypes[".swf"] = "application/x-shockwave-flash";
-
-	xhttpd_mapMimeTypes[".bin"] = "application/octet-stream";
-
-}
-
-
-
-
-
-void processConnection( int c ){
+void x_httpd::processConnection( int c ){
 
 	FILE *sockIn, *sockOut;
 
@@ -653,7 +860,9 @@ void processConnection( int c ){
 				//**this has been replaced with a global char* that is malloced.
 				//char inbuf[INBUF_SIZE];
 				
-				sprintf( caDbg, "x-httpd: processConnection(c)..\n" ); XPLMDebugString(caDbg);
+				//sprintf( caDbg, "x-httpd: processConnection(c)..\n" ); XPLMDebugString(caDbg);
+				
+				#define INBUF_SIZE 1024*1024*10
 				
 				memset(inbuf, 0, INBUF_SIZE);
 				size_t bytes_read = 0;
@@ -662,7 +871,7 @@ void processConnection( int c ){
 				do{
 					chunk_size = fread( inbuf + bytes_read, 1, 1, sockIn );
 					bytes_read += chunk_size;
-					sprintf( caDbg, "  chunk read: %li bytes\n", chunk_size ); XPLMDebugString(caDbg);
+					//sprintf( caDbg, "  chunk read: %li bytes\n", chunk_size ); XPLMDebugString(caDbg);
 					//usleep( 100 ); //do we need this?
 				}while( chunk_size > 0 );
 				
@@ -695,13 +904,13 @@ void processConnection( int c ){
 		
 			if( bLogDebugToConsole ){
 				sprintf(caDbg, "---recv x-httpd request, %i bytes---\n", (int)strlen(inbuf));
-				XPLMDebugString(caDbg);
+				//XPLMDebugString(caDbg);
 				
 					sprintf(caDbg, "%s", inbuf );
-					XPLMDebugString(caDbg);
+					//XPLMDebugString(caDbg);
 					
 				sprintf(caDbg, "--- end recv ---\n");
-				XPLMDebugString(caDbg);
+				//XPLMDebugString(caDbg);
 			}
 			
 
@@ -782,12 +991,12 @@ void processConnection( int c ){
 		if( iRequestStringStart > -1 && iRequestStringStop > -1 ){
 			memcpy( requestString, inbuf+iRequestStringStart, iRequestStringStop-iRequestStringStart );
 			if( bLogDebugToConsole ){
-				sprintf(caDbg, "x-httpd request: (%s)\n", requestString ); XPLMDebugString(caDbg);
+				//sprintf(caDbg, "x-httpd request: (%s)\n", requestString ); XPLMDebugString(caDbg);
 			}
 			
 		}else{
 			if( bLogDebugToConsole ){
-				sprintf(caDbg, "IRStart/IRStop; %i / %i\n", iRequestStringStart, iRequestStringStop ); XPLMDebugString(caDbg);
+				//sprintf(caDbg, "IRStart/IRStop; %i / %i\n", iRequestStringStart, iRequestStringStop ); XPLMDebugString(caDbg);
 			}
 		}
 
@@ -796,13 +1005,13 @@ void processConnection( int c ){
 			if( iQueryStringStart > -1 && iQueryStringStop > -1 ){
 				memcpy( queryString, inbuf+iQueryStringStart, iQueryStringStop-iQueryStringStart );
 				if( bLogDebugToConsole ){
-					sprintf(caDbg, "x-httpd request querystring: (%s)\n", queryString ); XPLMDebugString(caDbg);
+					//sprintf(caDbg, "x-httpd request querystring: (%s)\n", queryString ); XPLMDebugString(caDbg);
 				}
 				
 				
 			}else{
 				if( bLogDebugToConsole ){
-					sprintf( caDbg, "IQStart/IQStop; %i / %i\n", iQueryStringStart, iQueryStringStop ); XPLMDebugString(caDbg);
+					//sprintf( caDbg, "IQStart/IQStop; %i / %i\n", iQueryStringStart, iQueryStringStop ); XPLMDebugString(caDbg);
 				}
 				//the user has submitted an ivalid request and we could not parse the requested-file string out of it.
 				//close( c );
@@ -865,7 +1074,7 @@ void processConnection( int c ){
 							
 			strcpy( queryString, fixUrlEntities.c_str() );
 			if( bLogDebugToConsole ){
-				sprintf( caDbg, "Decoded URL: (%s)\n", queryString ); XPLMDebugString(caDbg);
+				//sprintf( caDbg, "Decoded URL: (%s)\n", queryString ); XPLMDebugString(caDbg);
 			}
 
 			//--end of repairs
@@ -915,7 +1124,7 @@ void processConnection( int c ){
 
 
 		//char html[BUFFER_PAGE_SIZE];
-		memset(html, 0, BUFFER_PAGE_SIZE);
+		//memset(html, 0, BUFFER_PAGE_SIZE);
 		
 		char header[2048];
 		memset(header, 0, 2048);
@@ -928,7 +1137,7 @@ void processConnection( int c ){
 
 		if( (strcmp(authorizationToken.c_str(), (const char *)auth_token_b64) == 0) || ( ! bRequirePassword ) ){
 			if( bLogDebugToConsole ){
-				sprintf( caDbg, "Authorization is good!\n"); XPLMDebugString(caDbg);
+				//sprintf( caDbg, "Authorization is good!\n"); XPLMDebugString(caDbg);
 			}
 		
 				if( strcmp( requestString, "/about" ) == 0 ){
@@ -936,12 +1145,14 @@ void processConnection( int c ){
 					iPayloadSize = htmlGeneric( header, html, "x-httpd 14.12.06.1934 alpha" );
 
 				//these items are dynamic
+				/*
 				}else if( strcmp( requestString, "/state.xml" ) == 0 ){
 					iPayloadSize = htmlStateXML( header, html );
 
 				}else if( strcmp( requestString, "/full-state.xml" ) == 0 ){
 					iPayloadSize = htmlMiscStateXML( header, html, queryString ); //htmlRootDocument( header, html );
-
+				*/
+				
 				}else if( strcmp( requestString, "/get" ) == 0 ){
 					iPayloadSize = htmlUniGet( header, html );
 
@@ -952,12 +1163,13 @@ void processConnection( int c ){
 				}else{
 					//we should look on the disk for this file.
 					
-					
 					//EXPERIMENTAL
 					//check to see if another plugin has registered to handle this resource..
 					std::map<std::string, std::string>::iterator it = xhttpd_mapResourceMap.find( std::string(requestString) );
 					
 					if( it != xhttpd_mapResourceMap.end() ){
+						#if 0
+
 						std::string sMsg = "x-httpd: found mapped filter for resource: " + std::string(it->first) + " -> " + it->second + "\n";
 						XPLMDebugString(sMsg.c_str());
 					
@@ -1022,7 +1234,7 @@ void processConnection( int c ){
 						
 						
 						return;
-						
+						#endif
 					
 					}else{
 					
@@ -1038,13 +1250,13 @@ void processConnection( int c ){
 								
 								char webRoot[1024];
 								findWebRoot( webRoot );
-								sprintf( caDbg, "webroot: %s\n", webRoot ); XPLMDebugString(caDbg);
+								//sprintf( caDbg, "webroot: %s\n", webRoot ); XPLMDebugString(caDbg);
 								
 								int iTempPayloadSize=0;
 								
 								char tmpFilename[2048];
 								sprintf( tmpFilename, "html%s", requestString );
-								sprintf( caDbg, "Attempting to open and temp-cache the file: %s\n", tmpFilename ); XPLMDebugString(caDbg);
+								//sprintf( caDbg, "Attempting to open and temp-cache the file: %s\n", tmpFilename ); XPLMDebugString(caDbg);
 								
 								
 								//fixme; make the file-extension detector work with more than just three letter extensions.
@@ -1056,7 +1268,7 @@ void processConnection( int c ){
 										4
 										); //this should give us the file extension.
 								
-								sprintf( caDbg, "File extension: %s\n", tmpFileType ); XPLMDebugString(caDbg);
+								//sprintf( caDbg, "File extension: %s\n", tmpFileType ); XPLMDebugString(caDbg);
 								
 								
 								
@@ -1066,7 +1278,7 @@ void processConnection( int c ){
 								cacheFile_Bin(webRoot, tmpFilename, &generic_cache, &iTempPayloadSize);
 								
 								if( iTempPayloadSize > 0 ){
-									sprintf( caDbg, "payload size returned by cacheFile_Bin: %i\n", iTempPayloadSize ); XPLMDebugString(caDbg);
+									//sprintf( caDbg, "payload size returned by cacheFile_Bin: %i\n", iTempPayloadSize ); XPLMDebugString(caDbg);
 								
 									iPayloadSize = htmlSendBinary(header, html, generic_cache, iTempPayloadSize, tmpFileType);
 									//iPayloadSize = htmlSendImagePNG( header, html, img_shadow, &img_shadow_size );
@@ -1090,10 +1302,10 @@ void processConnection( int c ){
 
 		}else{
 			if( bLogDebugToConsole ){
-				sprintf( caDbg, "HTTP Auth is BAD!\n"); XPLMDebugString( caDbg );
+				//sprintf( caDbg, "HTTP Auth is BAD!\n"); XPLMDebugString( caDbg );
 			}
 			if( bLogDebugToConsole ){ 
-				sprintf( caDbg, "recv: (%s) wanted: (%s)\n", authorizationToken.c_str(), (const char *)auth_token_b64); XPLMDebugString(caDbg);
+				//sprintf( caDbg, "recv: (%s) wanted: (%s)\n", authorizationToken.c_str(), (const char *)auth_token_b64); XPLMDebugString(caDbg);
 			}
 			iPayloadSize = htmlAccessDenied( header, html );
 			
@@ -1130,129 +1342,4 @@ void processConnection( int c ){
 
 
 
-
-
-
-
-
-void cacheFile_Text( char *rootFolder, char *filename, unsigned char **buffer ){
-
-	char targetFile[ strlen(rootFolder) + strlen(filename) + 2 ];
-	
-	char caDbg[1024];
-	
-
-	sprintf( targetFile, "%s%s", rootFolder, filename );
-	sprintf( caDbg, "attempting to cache text file: %s\n", targetFile ); XPLMDebugString( caDbg );
-
-
-	int iSize = getFileSize( targetFile ) + 1; //we add 1 to the end to ensure we have a terminator byte
-		//if( iSize > 0 ){
-			*buffer	= (unsigned char*)malloc( iSize );
-				memset(*buffer, 0, iSize );
-					
-					FILE *fp = fopen( targetFile, "r" );
-					if( fp ){
-							fread( *buffer, iSize, 1, fp );
-						fclose( fp );
-						
-						//printf( "file checksum: %i\n", checksumEnvelope( (char *)*buffer, iSize ) );
-
-					}
-		//}else{
-		//	*buffer = (unsigned char*)malloc( 64 );
-		//	sprintf( (char*)*buffer, "File not found." );
-		
-		//}
-
-}
-void cacheFile_Bin( char *rootFolder, char *filename, unsigned char **buffer, int *iSize ){
-
-	char targetFile[ strlen(rootFolder) + strlen(filename) + 2 ];
-	
-	char caDbg[1024];
-
-	sprintf( targetFile, "%s%s", rootFolder, filename );
-	sprintf( caDbg, "attempting to cache binary file: %s\n", targetFile ); XPLMDebugString( caDbg );
-
-	*iSize = getFileSize( targetFile );
-	
-		if( *iSize > 0 ){
-			*buffer = (unsigned char*)malloc( *iSize );
-			memset(*buffer, 0, *iSize );
-				
-				FILE *fp = fopen( targetFile, "r" );
-				if( fp != NULL ){
-					//fixme: reading all in one massive chunk not so great for speed.
-					fread( *buffer, *iSize, 1, fp );
-					fclose( fp );
-				}
-		}
-
-
-}
-
-
-void prepareFileCache(){
-
-
-	//global read buffer
-	inbuf = (char *)malloc( BUFSIZE );
-	html = (char *)malloc( BUFSIZE );
-
-	char caDbg[1024];
-
-	char webRoot[1024];
-	findWebRoot( webRoot );
-	
-	sprintf(caDbg, "webroot: %s\n", webRoot ); XPLMDebugString(caDbg);
-	
-		//cache authentication details
-		cacheFile_Text( webRoot, "password.txt", &auth_token_raw );
-				int b64_len = ((strlen((const char*)auth_token_raw))*2); //we multiply the buffer size by 2 to make sure we have room for the b64 version.
-				auth_token_b64 = (unsigned char*)malloc( b64_len );
-				memset(auth_token_b64, 0, b64_len );
-					encode_string( (char *)auth_token_raw, (char *)auth_token_b64 );
-					sprintf( caDbg, "Authentication token loaded and encoded: (%s) > (%s)\n", auth_token_raw, auth_token_b64 ); XPLMDebugString(caDbg);
-
-}
-
-
-void cleanupFileCache(){
-
-	//free the io buffers.
-	free( inbuf ); //file reading buffer should be released immediately after file reads.
-	free( html );
-
-
-	free(auth_token_raw);
-	free(auth_token_b64);
-
-}
-
-
-int getFileSize( char *filename ){
-
-	struct stat fsize;
-	
-	char caDbg[1024];
-	
-	
-	if( !stat(filename, &fsize) ){
-		return fsize.st_size;
-	}else{
-		sprintf( caDbg, "No such file (stat error): %s\n", filename);
-		XPLMDebugString(caDbg);
-	}
-	
-	return -1;
-
-}
-
-
-
-
-
-
-
-
+//eof

@@ -20,76 +20,110 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 #define __x_httpd__http__
 
 #include <iostream>
+#include <map>
+#include <string>
+#include <vector>
 
-#include "common_sdk.h"
-
-#include "common_includes.h"
-
-
-
-
-extern char *queryStringV[1024]; //lookup table for query string values after 1st stage parsing.
-extern int queryStringVCount;
-
-extern void parseQuerystring( char *queryString );
-
-extern int parseQuerystringForInt( char *key );
-extern float parseQuerystringForFloat( char *key );
-extern void parseQuerystringForString( char *key, char *ret, int retSize );
+//socket includes:
 
 
-extern void header401Deny( char *header );
-
-extern void header200OK_MIME( char *header, const char* mime_string );
-
-extern void header404NF( char *header );
+//project includes:
+#include "io_utils.h"
 
 
 
-
-
-extern int html404Document( char *header, char *html, char *requestString, char *queryString );
-extern int htmlAccessDenied( char *header, char *html );
-extern int htmlGeneric( char *header, char *html, char *payload );
-//extern int htmlGenericText( char *header, char *html, char *payload );
-//extern int htmlGenericXML( char *header, char *html, char *payload );
-//extern int htmlGenericCSS( char *header, char *html, char *payload );
-//extern int htmlSendImagePNG( char *header, char *html, unsigned char *buffer, int *size );
-
-extern int htmlSendBinary( char *header, char *html, unsigned char *buffer, int size, char *fileType );
-
-extern int htmlUniSet( char *header, char *html );
-
-extern int htmlUniGet( char *header, char *html );
-
-
-extern int htmlMiscStateXML( char *header, char *html, char *queryString );
-extern int htmlStateXML( char *header, char *html );
+#define X_HTTPD_VERSION_STRING "x-httpd v14.12.06.1913 (C) 2005,2013-2014, br@x-plugins.com"
 
 
 
 
 
 
-extern int getFileSize( char *filename );
+class x_httpd{
+	private:
+	
+		//char hack_blob[8192]; //used to exchange data via X-Plane IPC, move to main_xpl.cpp
+	
+		int sock;
+		
+		int bAllowRemoteConnections;
+		int bRequirePassword;
+		
+		int bLogDebugToConsole;
+		
+		char *inbuf;
+		char *html;
+		
+		unsigned char *auth_token_raw; //storage for our base64 encoded auth token.
+		unsigned char *auth_token_b64; //storage for our base64 encoded auth token.
+
+		unsigned char *generic_cache;
+	
+	
+		//extern std::map<intptr_t, client_handle> xhttpd_mapClientReturnPacketQueue;
+		std::map<std::string, std::string> xhttpd_mapResourceMap; //map: uri -> plugin_id
+		std::map<std::string, std::string> xhttpd_mapMimeTypes;
 
 
-extern void cacheFile_Text( char *rootFolder, char *filename, unsigned char **buffer );
-extern void cacheFile_Bin( char *rootFolder, char *filename, unsigned char **buffer, int *iSize );
-extern void prepareFileCache();
-extern void cleanupFileCache();
+		
+		char *queryStringV[1024]; //lookup table for query string values after 1st stage parsing.
+		int queryStringVCount;
+	
+	
+	public:
+		x_httpd( int port );
+		~x_httpd();
 
 
-extern void findPluginFolder(char *buffer);
-extern void findWebRoot( char *buffer );
+		void run(); //endless loop, run forever, CLI.
+		void run_slice( int max_time_usec ); //run a small slice of work
+		
+		
+		void initSockets();
+		
+		//handler functions for the web server.
+		void processConnection( int client );
 
 
 
 
 
-//handler functions for the web server.
-extern void processConnection( int client );
+		void parseQuerystring( char *queryString );
 
+		int parseQuerystringForInt( char *key );
+		float parseQuerystringForFloat( char *key );
+		void parseQuerystringForString( char *key, char *ret, int retSize );
+
+
+		void header401Deny( char *header );
+
+		void header200OK_MIME( char *header, const char* mime_string );
+
+		void header404NF( char *header );
+
+
+
+
+
+		int html404Document( char *header, char *html, char *requestString, char *queryString );
+		int htmlAccessDenied( char *header, char *html );
+		int htmlGeneric( char *header, char *html, char *payload );
+
+		int htmlSendBinary( char *header, char *html, unsigned char *buffer, int size, char *fileType );
+
+		//dataref access
+		int htmlUniSet( char *header, char *html );
+		int htmlUniGet( char *header, char *html );
+
+		//summarised state data
+		int htmlMiscStateXML( char *header, char *html, char *queryString );
+		int htmlStateXML( char *header, char *html );
+
+
+
+
+
+};
 
 
 

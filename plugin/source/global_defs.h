@@ -29,7 +29,6 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 
 
 
-#define X_HTTPD_VERSION_STRING "x-httpd v14.12.06.1913 (C) 2005,2013-2014, br@x-plugins.com"
 
 #include "common_includes.h"
 

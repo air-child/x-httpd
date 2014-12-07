@@ -32,6 +32,7 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 #include <arpa/inet.h>
 
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <string.h>
 
@@ -51,18 +52,7 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 #include <iostream>
 
 
-
-
-
 #include "b64.h"
-
-
-#include "global_defs.h"
-#include "http.h"
-
-#include "drefs.h"
-
-#include "common_sdk.h"
 
 
 

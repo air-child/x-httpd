@@ -686,41 +686,6 @@ PLUGIN_API void XPluginReceiveMessage(
 }
 #pragma mark -
 
-void initSockets(){
-
-	//	struct hostent *h;
-	//	if ((h=gethostbyname("localhost")) == NULL) {  /* get the host info */
-      ///      herror("gethostbyname");
-      //      exit(1);
-      //  }
-
-
-		struct sockaddr_in sin;
-		
-		sin.sin_family=AF_INET;
-		sin.sin_port= htons(1312);
-			//net_aton("127.0.0.1", &(sin.sin_addr));
-		sin.sin_addr.s_addr= htonl(INADDR_ANY);
-
-		sock = socket( AF_INET, SOCK_STREAM, 0 );
-		
-		int sflag = 1;
-		setsockopt( sock, SOL_SOCKET, SO_REUSEADDR, (char*)&sflag, sizeof(int) );
-		
-		int sflags = fcntl( sock, F_GETFL );
-		//fcntl( sock, F_SETFL, O_NONBLOCK );
-		fcntl( sock, F_SETFL, sflags | O_NONBLOCK );
-		
-		if( bind( sock, (const sockaddr*)&sin, sizeof(sin) ) != 0 ){
-			printf("x-httpd: Failed to bind server socket to port: %i\n", sin.sin_port);
-			return;
-		}else{
-			listen( sock, 5 );
-			printf("Socket listening on port %i.\n", sin.sin_port);
-		}
-	
-
-}
 
 
 #pragma mark Other
@@ -733,98 +698,6 @@ float MyFlightLoopCallback(
 {
 
 
-		char caDbg[1024];
-
-
-			static int socketsInit = 0;
-			if( ! socketsInit ){
-			
-				if( strcmp("username:password", (const char*)auth_token_raw) == 0 ){
-					XPLMSpeakString("x-httpd; This is the first time you have used x-httpd, please change the password.");
-					dialog_ChangePassword();
-				
-				}
-				
-				printf("Running sockets init...\n");
-				initSockets();
-				socketsInit = 1;
-			
-			}
-
-
-			int c = 0;
-
-			int clientCount = 0;
-			do{
-				clientCount++;
-			
-				if( clientCount >= 10 ){ break; } //we want to give x-plane priority, 10 clients per frame event.
-			
-				struct sockaddr_in from;
-				memset( &from, 0, sizeof( sockaddr_in ));
-				socklen_t len;
-
-				//printf( "foo\n");
-				
-				c = accept( sock, (sockaddr*)&from, &len );				
-				
-				switch( c ){
-					case EBADF:
-							printf("x-httpd error: Bad file descriptor.\n");
-						break;
-					case ENOTSOCK:
-							printf("x-httpd error: accept() error: Not a socket.\n");
-						break;
-					case EOPNOTSUPP:
-							printf("x-httpd error: accept() error: Socket is not a STREAM.\n");
-						break;
-					case EFAULT:
-							printf("x-httpd error: accept() error: Address parameter fault.\n");
-						break;
-					case EWOULDBLOCK:
-							printf( "x-httpd error: accept() error: Would block.\n" );
-						break;
-					case EMFILE:
-							printf( "x-httpd error: accept() error: Process file table is full.\n" );
-						break;
-					case ENFILE:
-							printf( "x-httpd error: accept() error: Would block.\n" );
-						break;
-					case -1:
-						break;
-					default:
-						//printf("accept()ed a connect: %i\n", c);
-						
-						char remoteAddress[32];
-							strcpy( remoteAddress, inet_ntoa(from.sin_addr) );
-							
-							sprintf( caDbg, "\nx-httpd: request from: %s\n", remoteAddress );
-							XPLMDebugString(caDbg);
-							
-							
-							//if(true){
-							if( (strcmp( "127.0.0.1", remoteAddress ) == 0) || bAllowRemoteConnections ){
-						
-								//ntohl( &(from.sin_addr) );
-								if( bLogDebugToConsole ){
-									printf( "*** Connection from: %s\n", remoteAddress );
-								}
-						
-								processConnection(c);
-								
-							}else{
-							
-								sprintf( caDbg, "x-httpd: Access Denied: allow_remote: %i\n", bAllowRemoteConnections );
-								XPLMDebugString(caDbg);
-							
-								//htmlAccessDenied
-								//TODO: send basic hard coded http packet with denied message
-							
-								close(c);
-							}
-						break;
-				}
-			}while( c != -1 );
 
 
     //come get me next frame.
@@ -876,6 +749,8 @@ void findPluginFolder(char *buffer){
     strcpy(buffer, ptmp);
 
 }
+
+
 
 void findWebRoot( char *buffer ){
 
