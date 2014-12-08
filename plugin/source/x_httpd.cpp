@@ -66,7 +66,7 @@ void x_httpd::run(){
 		this->run_slice( 10 );
 		
 		//we should probably usleep or something
-		usleep( 10 );
+		usleep( 100 );
 	
 	}
 }

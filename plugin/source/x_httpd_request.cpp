@@ -8,6 +8,8 @@
 
 #include "x_httpd_request.h"
 
+#include "io_utils.h"
+
 
 //extract auth token from raw data
 void x_httpd_request::parseAuthToken(){
@@ -274,111 +276,111 @@ x_httpd_request::x_httpd_request( int sock_client, std::string sAuthTokenB64 ){
 
 
 	//FIXME: Dynamic configuration required.
-	sprintf( this->webRoot, "/Applications/X-Plane 10 beta/Resources/plugins/x-httpd.x-plugin/x-httpd-content/html/" );
+	sprintf( this->webRoot, "/Applications/X-Plane 10 beta/Resources/plugins/x-httpd.x-plugin/x-httpd-content/" );
 	
-	
-	this->sock_client = sock_client;
 	this->sAuthTokenB64 = sAuthTokenB64;
 
-
-
 	this->queryStringVCount = 0;
-
 	
-	FILE *sockIn, *sockOut;
-
-	char caDbg[1024];
-
-		sockIn = fdopen( sock_client, "rb" );
-			
-			// ------ Socket Read Loop ----
-			
-			size_t bytes_read = 0;
-			size_t chunk_size = 0;
-			
-			char rxbuf[8192];
-			memset( rxbuf, 0, 8192 ); //reset an oversize buffer with 0 bytes.
-			
-			this->rawData = ""; //blankity blank blank
-			
-			do{
-				//chunk_size = fread( inbuf + bytes_read, 1, 1, sockIn );
-				chunk_size = fread( rxbuf, 1, 1, sockIn );
-				bytes_read += chunk_size;
-
-				//sprintf( caDbg, "  chunk read: %li bytes\n", chunk_size ); XPLMDebugString(caDbg);
-				//usleep( 100 ); //do we need this?
-				
-				//append byte-string to existing byte-string data
-				this->rawData += std::string( rxbuf, chunk_size );
-				
-			}while( chunk_size > 0 );
-				
-		//fclose( sockIn );
+	
+		this->sock_client = sock_client;
+		this->sockIn = fdopen( this->sock_client, "rb" );
+		
+		//pass sockOut to response handler.
+		this->sockOut = fdopen( this->sock_client, "wb" );
 		
 		
-		//usleep( 1000 );
-		//inbuf_bytes_read = fread( inbuf, INBUF_SIZE, 1, sockIn ); //read off the socket as fast as possible.
-		//sprintf( caDbg, "  1st read: %li bytes\n", inbuf_bytes_read ); XPLMDebugString(caDbg);
 
-		/*
-		//if there is no data, we'll hang around trying to read until there is!
-		int read_retries = 0;
-		//while( inbuf_bytes_read < 10 && read_retries < 50 );{
-		while( read_retries < 50 );{
-			XPLMDebugString("####");
-			usleep( 100 );
-			size_t chunk_size = fread( inbuf, 8, 1, sockIn );
-			inbuf_bytes_read += chunk_size;
-			sprintf( caDbg, "x-httpd: chunk read: %li bytes\n", chunk_size ); XPLMDebugString(caDbg);
-			sprintf( caDbg, "x-httpd: total read: %li bytes\n", inbuf_bytes_read ); XPLMDebugString(caDbg);
 
-			read_retries++; //avoid DoS from open socket.
-		}
-		*/
-				
-		// --- End Socket Read Loop ---
-		
-		
-		
-		if( bLogDebugToConsole ){
-			sprintf(caDbg, "---recv x-httpd request, %i bytes---\n", (int) this->rawData.size() );
-			printf( caDbg );
-			//XPLMDebugString(caDbg);
-			
-				sprintf(caDbg, "%s", this->rawData.c_str() );
-				printf( caDbg );
-				//XPLMDebugString(caDbg);
-				
-			sprintf(caDbg, "--- end recv ---\n");
-			printf( caDbg );
-			//XPLMDebugString(caDbg);
-		}
-			
-
+		this->readClientRequest();
 
 		//socket data packet has been read, we should parse the new data.
-
 		this->parseRequest();
-		
 		this->decodeUrlEntities();
-
 		this->parseAuthToken();
-
 
 		//parse the query string into a LUT of k/v pairs.
 		this->parseQuerystring(); //sort the query string into a LUT
 			
-
-
-
-
-		//char response[BUFFER_PAGE_SIZE];
-		//memset(response, 0, BUFFER_PAGE_SIZE);
 		
+		//make choices about what content to serve
+		this->processRequest();
+		
+
+}
+
+
+
+x_httpd_request::~x_httpd_request(){
+		
+	fclose( this->sockOut );
+	fclose( this->sockIn );
+
+	close( this->sock_client );
+
+}
+
+
+
+
+void x_httpd_request::readClientRequest(){
+
+	// ------ Socket Read Loop ----
+	
+	size_t bytes_read = 0;
+	size_t chunk_size = 0;
+	
+	char rxbuf[8192];
+	memset( rxbuf, 0, 8192 ); //reset an oversize buffer with 0 bytes.
+	
+	this->rawData = ""; //blankity blank blank
+	
+	do{
+
+		//attempts to read more than 1 byte at a time result in a blank http packet???
+		chunk_size = fread( rxbuf, 1, 1, sockIn );
+		bytes_read += chunk_size;
+
+		//append byte-string to existing byte-string data
+		this->rawData += std::string( rxbuf, chunk_size );
+		
+	}while( chunk_size > 0 );
+
+	//DO NOT close socket or socket read/write FILE* handles until we're completely finished with request.
+	//fclose( sockIn );
+	//resources are released in destructor
+	// --- End Socket Read Loop ---
+	
+	
+	
+	if( bLogDebugToConsole ){
+		char caDbg[1024];
+
+		sprintf(caDbg, "---recv x-httpd request, %i bytes---\n", (int) this->rawData.size() );
+		printf( caDbg );
+		//XPLMDebugString(caDbg);
+		
+			sprintf(caDbg, "%s", this->rawData.c_str() );
+			printf( caDbg );
+			//XPLMDebugString(caDbg);
+			
+		sprintf(caDbg, "--- end recv ---\n");
+		printf( caDbg );
+		//XPLMDebugString(caDbg);
+	}
+
+}
+
+
+
+
+
+
+void x_httpd_request::processRequest(){
+	char caDbg[1024];
+
 		char header[2048];
 		memset(header, 0, 2048);
-		
 		
 		//FIXME: limited space for response data..
 		char blob[8192];
@@ -428,6 +430,135 @@ x_httpd_request::x_httpd_request( int sock_client, std::string sAuthTokenB64 ){
 					std::map<std::string, std::string>::iterator it = mapResourceMap.find( std::string(requestString) );
 					
 					if( it != mapResourceMap.end() ){
+					
+						this->processRequest_IPC();
+					
+					}else{
+					
+						//we could not find a registered filter above, so we'll now look for a static file on disk.
+					
+								
+								//Default resource handler: http://localhost:1312/ -> http://localhost:1312/index.htm
+								if( "/" == this->requestString ){
+									this->requestString = "/index.htm";
+								}
+								
+								
+								
+								//char webRoot[1024];
+								//findWebRoot( webRoot );
+								sprintf( caDbg, "webroot: %s\n", webRoot ); 
+								//XPLMDebugString(caDbg);
+								printf( caDbg );
+								
+								int iTempPayloadSize=0;
+								
+								char tmpFilename[2048];
+								sprintf( tmpFilename, "html%s", this->requestString.c_str() );
+								sprintf( caDbg, "Attempting to open and temp-cache the file:(%s)\n", tmpFilename ); 
+								printf( caDbg );
+								//XPLMDebugString(caDbg);
+								
+								
+								//fixme; make the file-extension detector work with more than just three letter extensions.
+								char tmpFileType[5];
+								memset(	tmpFileType, 0, 5 );
+								memcpy(
+										tmpFileType,
+										tmpFilename + (strlen(tmpFilename)-4), 
+										4
+										); //this should give us the file extension.
+								
+								printf( "File extension: %s\n", tmpFileType );
+								
+								
+								//FIXME: check requested filename for ".." parent dir strings
+								
+								char fullPath[4096];
+								sprintf( fullPath, "%s%s", webRoot, tmpFilename );
+								
+								char err_msg[1024];
+								int fileSize = getFileSize( fullPath, err_msg );
+								if( fileSize ){
+								
+									printf("* reading file for response..");
+								
+									char buffer[81920]; //80kb
+								
+									FILE *fp = fopen( fullPath, "rb" );
+									if( fp != NULL ){
+										//fixme: reading all in one massive chunk not so great for speed.
+										fread( buffer, fileSize, 1, fp );
+										fclose( fp );
+										
+										response.htmlGeneric( header, blob, buffer );
+										
+										iPayloadSize = strlen( blob );
+									}
+									
+									
+								
+								
+								}//else: 404
+								
+								
+								
+					} //end check for registered filter for uri
+
+				} //end of checks for builts-ins, registered-filters and static-files
+				
+				
+				
+				//double check content to see if we got a 404
+				if( iPayloadSize == 0 ){
+					printf("Failed to generate content. Defaulting to 404.\n");
+					iPayloadSize = this->response.html404Document( header, blob, this->requestString.c_str(), this->queryString.c_str() );
+				}
+
+				
+
+		}else{
+			if( bLogDebugToConsole ){
+				sprintf( caDbg, "HTTP Auth is BAD!\n"); 
+				printf( caDbg );
+				//XPLMDebugString( caDbg );
+
+				sprintf( caDbg, "recv: (%s) wanted: (%s)\n", authorizationToken.c_str(), this->sAuthTokenB64.c_str() ); 
+				printf( caDbg );
+				//XPLMDebugString(caDbg);
+			}
+			iPayloadSize = this->response.htmlAccessDenied( header, blob );
+			
+		}
+
+
+
+
+
+		//we have processed the request and gathered some kind of HTTP response.
+		//time to write it to the client.
+
+		//write header
+		fwrite( header, strlen(header), 1, sockOut );
+			char tmp[256];
+				sprintf(tmp, "Content-Length: %i\n\n", iPayloadSize);
+					fwrite( tmp, strlen(tmp), 1, sockOut );
+		
+			//write payload
+			fwrite( blob, iPayloadSize, 1, sockOut );
+
+		fflush( sockOut );
+
+}
+
+
+
+
+
+
+
+void x_httpd_request::processRequest_IPC(){
+
 						#if 0
 
 						std::string sMsg = "x-httpd: found mapped filter for resource: " + std::string(it->first) + " -> " + it->second + "\n";
@@ -494,126 +625,6 @@ x_httpd_request::x_httpd_request( int sock_client, std::string sAuthTokenB64 ){
 						
 						return;
 						#endif
-					
-					}else{
-					
-						//we could not find a registered filter above, so we'll now look for a static file on disk.
-					
-								
-								//Default resource handler: http://localhost:1312/ -> http://localhost:1312/index.htm
-								if( "/" == this->requestString ){
-									this->requestString = "/index.htm";
-								}
-								
-								
-								
-								//char webRoot[1024];
-								//findWebRoot( webRoot );
-								sprintf( caDbg, "webroot: %s\n", webRoot ); 
-								//XPLMDebugString(caDbg);
-								printf( caDbg );
-								
-								int iTempPayloadSize=0;
-								
-								char tmpFilename[2048];
-								sprintf( tmpFilename, "response%s", this->requestString.c_str() );
-								sprintf( caDbg, "Attempting to open and temp-cache the file:(%s)\n", tmpFilename ); 
-								printf( caDbg );
-								//XPLMDebugString(caDbg);
-								
-								
-								//fixme; make the file-extension detector work with more than just three letter extensions.
-								char tmpFileType[5];
-								memset(	tmpFileType, 0, 5 );
-								memcpy(
-										tmpFileType,
-										tmpFilename + (strlen(tmpFilename)-4), 
-										4
-										); //this should give us the file extension.
-								
-								printf( "File extension: %s\n", tmpFileType );
-								
-								
-								//FIXME: check requested filename for ".." parent dir strings
-								
-								
-								//todo; detect file type...
-								//FIXME: Disabled for refactor efforts.
-								/*
-								cacheFile_Bin(webRoot, tmpFilename, &generic_cache, &iTempPayloadSize);
-								
-								if( iTempPayloadSize > 0 ){
-									//sprintf( caDbg, "payload size returned by cacheFile_Bin: %i\n", iTempPayloadSize ); XPLMDebugString(caDbg);
-								
-									iPayloadSize = responseSendBinary(header, response, generic_cache, iTempPayloadSize, tmpFileType);
-									//iPayloadSize = responseSendImagePNG( header, response, img_shadow, &img_shadow_size );
-								
-									free( generic_cache );
-								}else{
-									iPayloadSize = response404Document( header, response, requestString, queryString );
-								}
-								*/
-								
-					} //end check for registered filter for uri
-
-				} //end of checks for builts-ins, registered-filters and static-files
-				
-				
-				
-				//double check content to see if we got a 404
-				if( iPayloadSize == 0 ){
-					printf("Failed to generate content. Defaulting to 404.\n");
-					iPayloadSize = this->response.html404Document( header, blob, this->requestString.c_str(), this->queryString.c_str() );
-				}
-
-				
-
-		}else{
-			if( bLogDebugToConsole ){
-				sprintf( caDbg, "HTTP Auth is BAD!\n"); 
-				printf( caDbg );
-				//XPLMDebugString( caDbg );
-
-				sprintf( caDbg, "recv: (%s) wanted: (%s)\n", authorizationToken.c_str(), this->sAuthTokenB64.c_str() ); 
-				printf( caDbg );
-				//XPLMDebugString(caDbg);
-			}
-			iPayloadSize = this->response.htmlAccessDenied( header, blob );
-			
-		}
-
-
-
-
-
-		//we have processed the request and gathered some kind of HTTP response.
-		//time to write it to the client.
-			sockOut = fdopen( this->sock_client, "w" );
-
-				//write header
-				fwrite( header, strlen(header), 1, sockOut );
-					char tmp[256];
-						sprintf(tmp, "Content-Length: %i\n\n", iPayloadSize);
-							fwrite( tmp, strlen(tmp), 1, sockOut );
-				
-					//write payload
-					fwrite( blob, iPayloadSize, 1, sockOut );
-
-				fflush( sockOut );
-		
-			fclose( sockOut );
-			fclose( sockIn );
-
-
-		close( this->sock_client );
-
-
-}
-
-
-
-x_httpd_request::~x_httpd_request(){
-
 
 }
 

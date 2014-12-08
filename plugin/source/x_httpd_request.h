@@ -24,6 +24,7 @@ class x_httpd_request{
 	private:
 
 		int sock_client; //raw socket.
+		FILE *sockIn, *sockOut;
 
 		std::string rawData; //collected by socket reader
 		
@@ -74,18 +75,19 @@ class x_httpd_request{
 		~x_httpd_request();
 		
 		
+		void readClientRequest(); //read from socket
 		
 		void parseRequest(); //decode basic HTTP request
-		
 		void decodeUrlEntities(); //filter URL entities
-		
 		void parseAuthToken(); //parse authentication token
-		
 		
 		void parseQuerystring(); //break down query string
 		int parseQuerystringForInt( char *key );
 		float parseQuerystringForFloat( char *key );
 		void parseQuerystringForString( char *key, char *ret, int retSize );
+
+		void processRequest(); //default processcing
+		void processRequest_IPC(); //advanced decode for IPC use with other plugins/modules.
 
 
 };
