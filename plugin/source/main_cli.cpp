@@ -17,12 +17,12 @@ int main(int argc, const char * argv[])
 
 	// insert code here...
 	std::cout << "x-httpd-cli 14.12.07.1819\n";
-	std::cout << "\n";
+	
+	printf(" built: %s %s\n", __DATE__, __TIME__);
 	
 	
 	std::cout << "  spawning server..\n";
 	x_httpd *httpd = new x_httpd( 1312 );
-	
 	
 	std::cout << "  running..\n";
 	httpd->run();

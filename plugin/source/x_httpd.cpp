@@ -155,7 +155,7 @@ void x_httpd::run_slice( int time_usec ){
 							strcpy( remoteAddress, inet_ntoa(from.sin_addr) );
 							
 							sprintf( caDbg, "\nx-httpd: request from: %s\n", remoteAddress );
-							printf( caDbg );
+							printf( "%s", caDbg );
 							//XPLMDebugString(caDbg);
 							
 							
@@ -176,7 +176,7 @@ void x_httpd::run_slice( int time_usec ){
 							
 								sprintf( caDbg, "x-httpd: Access Denied: allow_remote: %i\n", bAllowRemoteConnections );
 								//XPLMDebugString(caDbg);
-								printf( caDbg );
+								printf( "%s", caDbg );
 							
 								//htmlAccessDenied
 								//TODO: send basic hard coded http packet with denied message

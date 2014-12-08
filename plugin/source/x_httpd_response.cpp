@@ -8,6 +8,7 @@
 
 #include "x_httpd_response.h"
 
+#include "io_utils.h"
 
 
 x_httpd_response::x_httpd_response(){
@@ -24,9 +25,9 @@ x_httpd_response::x_httpd_response(){
 	this->mapMimeTypes[".bin"] = "application/octet-stream";
 
 
-	//10 meg buffer.
-	//	#define BUFSIZE 1024*1024*10
-	//this->response = (char*)malloc( BUFSIZE );
+
+	this->setResponse("HTTP/1.0 200 OK");
+	this->setContentBody("default content");
 
 
 }
@@ -38,7 +39,44 @@ x_httpd_response::~x_httpd_response(){
 
 
 
-void x_httpd_response::header401Deny( char *header ){
+
+//FIXME: poorly named, not actually a socket. Passing a file pointer FOR a socket.
+void x_httpd_response::setSocket( FILE* sockOut ){
+	this->sockOut = sockOut;
+}
+
+void x_httpd_response::setWebRoot( const char* webRoot ){
+	this->sWebRoot = std::string( webRoot );
+}
+
+
+
+
+void x_httpd_response::redirect( const char *target ){
+
+/*
+HTTP/1.1 301 Moved Permanently
+Location: http://www.example.org/
+Content-Type: text/html
+Content-Length: 174
+ 
+<html>
+<head>
+<title>Moved</title>
+</head>
+<body>
+<h1>Moved</h1>
+<p>This page has moved to <a href="http://www.example.org/">http://www.example.org/</a>.</p>
+</body>
+</html>
+*/
+
+}
+
+
+
+void x_httpd_response::accessDenied( const char *reason, const char *message ){
+/*
 	sprintf( header, "%s", 	
 						"HTTP/1.0 401 Access Denied\n" 
 						"Server: " X_HTTPD_VERSION_STRING "\n"
@@ -46,8 +84,137 @@ void x_httpd_response::header401Deny( char *header ){
 						"Content-type: text/html\n"
 						//"\n"
 			);
+			
+	this->header401Deny( header );
+	sprintf( html, "%s", "Access Denied" );
+	
+	return strlen( html );
 
+*/
 }
+
+
+
+void x_httpd_response::fileNotFound( const char *reason, const char *message ){
+
+	this->setResponse( "HTTP/1.0 404 Not Found" );
+	this->setContentType("text/html");
+	this->setContentBody("404!");
+
+} //fileNotFound
+
+
+
+void x_httpd_response::write(){
+
+
+		char tmp[1024]; //used for numeric converion to C-string, etc.
+		
+
+		std::string sOutputBlob = "";
+		sOutputBlob += this->sResponseType + "\n";
+		
+		//FIXME: iterate over headers and build string blob..
+
+		sprintf(tmp, "Content-Length: %li", this->sBody.size() );
+		sOutputBlob += std::string( tmp ) + "\n";
+		
+		//blank line to mark the end of our header section
+		sOutputBlob += "\n";
+		
+		//main payload
+		sOutputBlob += this->sBody;
+
+
+		fwrite( sOutputBlob.c_str(), sOutputBlob.size(), 1, this->sockOut );
+
+
+		fflush( sockOut );
+
+
+} //write
+
+
+
+
+void x_httpd_response::sendFile( const char *filename ){
+
+	char caDbg[2048];
+
+
+		sprintf( caDbg, "webroot: %s\n", this->sWebRoot.c_str() ); 
+		printf( "%s", caDbg );
+
+		
+		
+		char tmpFilename[2048];
+		sprintf( tmpFilename, "html%s", filename );
+		
+		sprintf( caDbg, "Serving file:(%s)\n", tmpFilename ); 
+		printf( "%s", caDbg );
+		//XPLMDebugString(caDbg);
+		
+		
+		
+		//FIXME: make the file-extension detector work with more than just three letter extensions.
+		char tmpFileType[5];
+		memset(	tmpFileType, 0, 5 );
+		memcpy(
+				tmpFileType,
+				tmpFilename + (strlen(tmpFilename)-4), 
+				4
+				); //this should give us the file extension.
+		
+		printf( "File extension: %s\n", tmpFileType );
+		
+		
+		
+		//FIXME: check requested filename for ".." parent dir strings
+		
+		
+		
+		
+		char fullPath[4096];
+		sprintf( fullPath, "%s%s", this->sWebRoot.c_str(), tmpFilename );
+		
+		
+		
+		char err_msg[1024];
+		size_t fileSize = getFileSize( fullPath, err_msg );
+		if( fileSize ){
+		
+			printf("* reading file for response..\n");
+			printf("(%s)\n", fullPath );
+		
+			char buffer[81920]; //80kb
+		
+			FILE *fp = fopen( fullPath, "rb" );
+			if( fp != NULL ){
+				//fixme: reading all in one massive chunk not so great for speed.
+				fread( buffer, fileSize, 1, fp );
+				fclose( fp );
+				
+				this->setContentBody( buffer, fileSize );
+				this->write();
+				
+			}else{
+				printf("* file not found.\n");
+			}
+			
+			
+			
+			
+				//this->response.setContentType( "text/plain" );
+					//this->response.setContentBody( "x-httpd 14.12.08.1650 alpha<br>built: " __DATE__ __TIME__ );
+					//this->response.write();
+		
+		
+		}//else: 404
+
+
+
+}//sendFile(...)
+
 
 
 
@@ -64,91 +231,7 @@ void x_httpd_response::header200OK_MIME( char *header, const char* mime_string )
 
 
 
-void x_httpd_response::header404NF( char *header ){
-	sprintf( header, "%s", 
-						"HTTP/1.0 404 Not Found\n"
-						"Server: " X_HTTPD_VERSION_STRING "\n"
-						"Content-Type: text/html\n"
-						//"\n"
-			);
 
-}
-
-
-
-
-
-
-
-
-int x_httpd_response::html404Document( char *header, char *html, const char *requestString, const char *queryString ){
-	
-	this->header404NF( header );
-
-	int appVer, xplmVer;
-	//XPLMHostApplicationID appId;
-	//XPLMGetVersions( &appVer, &xplmVer, &appId );
-	
-	appVer=999;
-	xplmVer=999;
-
-
-	sprintf(html,	
-					"<html><head><title>404 - File not found.</title></head>"
-					"<body>\n"
-					"\t<b>404 - File not found.</b><br/>\n"
-//					"\tRequest(%i): (%s)<br/>\n"
-					"\tQueryString(%i): (%s)<br/>\n"
-					"<hr/>"
-					"<font size='-1'>\n"
-//					"\t" X_HTTPD_VERSION_STRING " - Compiled: " __DATE__ " " __TIME__ "<br/>\n"
-					"\tX-Plane Version: %2.2f - "
-						#if APL
-							"Mac"
-						#elif IBM
-							"PC"
-						#elif LIN
-							"Linux"
-						#endif					
-						"<br/>\n"
-					"XPLM Version: %2.2f<br/>\n"
-					"</font>"
-					"</body>"
-					"</html>",
-//						(int)strlen(requestString),
-//						requestString,
-						(int)strlen(queryString),
-						queryString,
-						appVer/100.0f,
-						xplmVer/100.0f
-					);
-
-	return strlen( html );
-
-}
-
-int x_httpd_response::htmlAccessDenied( char *header, char *html ){
-
-	this->header401Deny( header );
-	sprintf( html, "%s", "Access Denied" );
-	
-	return strlen( html );
-
-}
-
-
-
-int x_httpd_response::htmlGeneric( char *header, char *html, char *payload ){
-
-	this->header200OK_MIME( header, "text/html" );
-
-	sprintf(html, "%s", 
-						payload
-						);
-						
-	return strlen( html );
-
-}
 
 
 int x_httpd_response::htmlSendBinary( char *header, char *html, unsigned char *buffer, int size, char *fileType ){
@@ -175,6 +258,52 @@ int x_httpd_response::htmlSendBinary( char *header, char *html, unsigned char *b
 
 }
 
+
+
+
+
+
+void x_httpd_response::setResponse( const char *response ){
+	//EG: HTTP/1.0 200 OK
+	this->sResponseType = std::string( response );
+}
+
+void x_httpd_response::setHeader( const char *key, const char *value ){
+	//EG: Content-Type: application/json
+	this->map_Headers[ std::string( key ) ] = std::string( value );
+}
+
+void x_httpd_response::setContentType( const char *mime_string ){
+	this->setHeader( "Content-Type", mime_string );
+}
+
+void x_httpd_response::setContentLength( size_t byte_count ){
+	char tmp[128];
+	sprintf( tmp, "%li", byte_count );
+	this->setHeader( "Content-Length", tmp );
+}
+
+void x_httpd_response::setContentBody( const char *content_body, size_t byte_count ){
+	this->sBody = std::string( content_body, byte_count );
+}
+
+void x_httpd_response::setContentBody( const char *content_body ){
+	this->setContentBody( content_body, strlen(content_body) );
+}
+
+
+
+
+
+
+
+// ------- Legacy XP support code below. ---------
+
+
+
+
+
+#if 0
 
 
 //Universal dataref set.
@@ -325,7 +454,8 @@ int x_httpd_response::htmlUniGet( char *header, char *html ){
 }
 
 
-#if 0
+
+
 int x_httpd_response::htmlMiscStateXML( char *header, char *html, char *queryString ){
 
 	//prepare GPS nav data.

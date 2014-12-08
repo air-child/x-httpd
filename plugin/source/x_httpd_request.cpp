@@ -18,13 +18,13 @@ void x_httpd_request::parseAuthToken(){
 	//std::string authorizationToken = rawData; //will be filled with b64 token
 	this->authorizationToken = this->rawData;
 	std::string::size_type headerLineStart = rawData.find("Authorization: Basic ");
-	if( (int)headerLineStart > -1 ){
+	if( headerLineStart != std::string::npos ){
 	
 			//strips all bytes from start of request to the start of our B64 auth token.
 			this->authorizationToken.replace(0,(int)headerLineStart+(strlen("Authorization: Basic ")), "");					
 			
 			std::string::size_type headerLineStop = this->authorizationToken.find("\n");
-			int stop = this->authorizationToken.length() - (int)headerLineStop; //location in raw bytes of end of auth line
+			size_t stop = this->authorizationToken.length() - headerLineStop; //location in raw bytes of end of auth line
 			this->authorizationToken.replace( (int)headerLineStop, stop, "" ); //wtf?
 			
 			//replace trailing CR char if we find one
@@ -102,7 +102,7 @@ void x_httpd_request::decodeUrlEntities(){
 	if( bLogDebugToConsole ){
 		char caDbg[1024];
 		sprintf( caDbg, "Decoded URL: (%s)\n", this->queryString.c_str() ); 
-		printf( caDbg );
+		printf( "%s", caDbg );
 		//XPLMDebugString(caDbg);
 	}
 
@@ -117,26 +117,25 @@ void x_httpd_request::parseRequest(){
 	char caDbg[1024];
 
 
-	int iRequestStringStart = -1;
-	int iRequestStringStop = -1;
+	size_t iRequestStringStart = std::string::npos;
+	size_t iRequestStringStop = std::string::npos;
 	
-	int iQueryStringStart = -1;
-	int iQueryStringStop = -1;
+	size_t iQueryStringStart = std::string::npos;
+	size_t iQueryStringStop = std::string::npos;
 	
 	
 		//Parse the request header for it's METHOD, Query String and protocol version.
-		int iX=0;
-		int iStringLen = this->rawData.size();
-		for(iX=0; iX<iStringLen; iX++){
+		size_t iStringLen = this->rawData.size();
+		for(size_t iX=0; iX<iStringLen; iX++){
 			switch( this->rawData[iX] ){
 				case '?':
-					if( iQueryStringStart < 0 ){
+					if( std::string::npos == iQueryStringStart ){
 						iQueryStringStart = iX+1;
 					}
 
 				case ' ':
 						{
-							if( iRequestStringStart == -1 ){
+							if( std::string::npos == iRequestStringStart ){
 								iRequestStringStart = iX+1;
 							}else{
 								iRequestStringStop = iX;
@@ -159,12 +158,12 @@ void x_httpd_request::parseRequest(){
 		
 		
 			//loop again, this time looking for the query string
-				if( iQueryStringStart > -1 ){
-					for(iX=iQueryStringStart; iX<iStringLen; iX++){
+				if( iQueryStringStart != std::string::npos ){
+					for(size_t iX=iQueryStringStart; iX<iStringLen; iX++){
 						switch( this->rawData[iX] ){
 							case ' ':
 									{
-										if( iQueryStringStop == -1 ){
+										if( std::string::npos == iQueryStringStop ){
 											iQueryStringStop = iX;
 											//request segment finished parsing, eject!
 											iX=iStringLen;
@@ -189,8 +188,8 @@ void x_httpd_request::parseRequest(){
 		
 		
 		
-		//printf( "Parsed request(%i): QueryString: %i > %i\n", iStringLen, iRequestStringStart, iRequestStringStop );
-		if( iRequestStringStart > -1 && iRequestStringStop > -1 ){
+		printf( "Parsed request(%li): RequestString: %li -> %li\n", iStringLen, iRequestStringStart, iRequestStringStop );
+		if( iRequestStringStart != std::string::npos && iRequestStringStop != std::string::npos ){
 			//memcpy( requestString, inbuf+iRequestStringStart, iRequestStringStop-iRequestStringStart );
 			
 			char caTmp[8192];
@@ -199,15 +198,13 @@ void x_httpd_request::parseRequest(){
 
 			this->requestString = std::string( caTmp );
 			
-			if( bLogDebugToConsole ){
-				sprintf(caDbg, "x-httpd request: (%s)\n", this->requestString.c_str() ); 
-				printf( caDbg );
-				//XPLMDebugString(caDbg);
-			}
+			printf( "Extracted request string:(%s)\n", this->requestString.c_str() );
+			
+			//we now know which resource the client wants.
 			
 		}else{
 			if( bLogDebugToConsole ){
-				//sprintf(caDbg, "IRStart/IRStop; %i / %i\n", iRequestStringStart, iRequestStringStop ); XPLMDebugString(caDbg);
+				printf(caDbg, "IRStart/IRStop; %i / %i\n", iRequestStringStart, iRequestStringStop );
 			}
 		}
 
@@ -215,8 +212,9 @@ void x_httpd_request::parseRequest(){
 
 
 			//printf( "Parsed request(%i): QueryString: %i > %i\n", iStringLen, iRequestStringStart, iRequestStringStop );
-			if( iQueryStringStart > -1 && iQueryStringStop > -1 ){
+			if( iQueryStringStart != std::string::npos && iQueryStringStop != std::string::npos ){
 			
+				//FIXME: memcpy
 				char caTmp[8192];
 				memset( caTmp, 0, 8192 );
 				memcpy( caTmp, caRawData + iQueryStringStart, iQueryStringStop - iQueryStringStart );
@@ -225,15 +223,15 @@ void x_httpd_request::parseRequest(){
 			
 				if( bLogDebugToConsole ){
 					sprintf(caDbg, "x-httpd request querystring: (%s)\n", this->queryString.c_str() ); 
-					printf( caDbg );
+					printf( "%s", caDbg );
 					//XPLMDebugString(caDbg);
 				}
 				
 				
 			}else{
 				if( bLogDebugToConsole ){
-					sprintf( caDbg, "IQStart/IQStop; %i / %i\n", iQueryStringStart, iQueryStringStop ); 
-					printf( caDbg );
+					sprintf( caDbg, "IQStart/IQStop; %li / %li\n", iQueryStringStart, iQueryStringStop ); 
+					printf( "%s", caDbg );
 					//XPLMDebugString(caDbg);
 				}
 				
@@ -245,10 +243,6 @@ void x_httpd_request::parseRequest(){
 				//return;
 				
 			}
-
-
-
-
 
 
 } //x_httpd_request::parseRequest(...)
@@ -283,15 +277,15 @@ x_httpd_request::x_httpd_request( int sock_client, std::string sAuthTokenB64 ){
 	this->queryStringVCount = 0;
 	
 	
+		//setup socket and FILE* for read/write of socket
 		this->sock_client = sock_client;
 		this->sockIn = fdopen( this->sock_client, "rb" );
-		
-		//pass sockOut to response handler.
 		this->sockOut = fdopen( this->sock_client, "wb" );
-		
-		
+		this->response.setSocket( this->sockOut );
+		this->response.setWebRoot( this->webRoot );
 
 
+		//read all bytes the client has sent us
 		this->readClientRequest();
 
 		//socket data packet has been read, we should parse the new data.
@@ -327,13 +321,16 @@ void x_httpd_request::readClientRequest(){
 
 	// ------ Socket Read Loop ----
 	
-	size_t bytes_read = 0;
-	size_t chunk_size = 0;
+	size_t bytes_read = 0; //total bytes read
+	size_t chunk_size = 0; //size of last chunk that was read
 	
+	
+	//temporary RX buffer, any read op must be <= this buffer size.
 	char rxbuf[8192];
 	memset( rxbuf, 0, 8192 ); //reset an oversize buffer with 0 bytes.
 	
-	this->rawData = ""; //blankity blank blank
+	
+	this->rawData = ""; //erase the content storage.
 	
 	do{
 
@@ -345,6 +342,7 @@ void x_httpd_request::readClientRequest(){
 		this->rawData += std::string( rxbuf, chunk_size );
 		
 	}while( chunk_size > 0 );
+	
 
 	//DO NOT close socket or socket read/write FILE* handles until we're completely finished with request.
 	//fclose( sockIn );
@@ -352,7 +350,7 @@ void x_httpd_request::readClientRequest(){
 	// --- End Socket Read Loop ---
 	
 	
-	
+	#if 1
 	if( bLogDebugToConsole ){
 		char caDbg[1024];
 
@@ -368,6 +366,7 @@ void x_httpd_request::readClientRequest(){
 		printf( caDbg );
 		//XPLMDebugString(caDbg);
 	}
+	#endif
 
 }
 
@@ -377,17 +376,12 @@ void x_httpd_request::readClientRequest(){
 
 
 void x_httpd_request::processRequest(){
+
 	char caDbg[1024];
 
-		char header[2048];
-		memset(header, 0, 2048);
 		
-		//FIXME: limited space for response data..
-		char blob[8192];
-		memset( blob, 0, 8192 );
-
-
-#pragma mark Request Processor here.
+		sprintf(caDbg, "x-httpd request: (%s)\n", this->requestString.c_str() ); 
+		printf( "%s", caDbg );
 
 		
 		int iPayloadSize = 0;
@@ -402,25 +396,11 @@ void x_httpd_request::processRequest(){
 			}
 		
 				if( "/about" == this->requestString ){
-					//iPayloadSize = responseGeneric( header, response, (char *)page_index );
-					iPayloadSize = this->response.htmlGeneric( header, blob, "x-httpd 14.12.06.1934 alpha" );
-
-				//these items are dynamic
-				/*
-				}else if( strcmp( requestString, "/state.xml" ) == 0 ){
-					iPayloadSize = responseStateXML( header, outbuf );
-
-				}else if( strcmp( requestString, "/full-state.xml" ) == 0 ){
-					iPayloadSize = responseMiscStateXML( header, outbuf, queryString ); //responseRootDocument( header, outbuf );
-				*/
-				
-				/*
-				}else if( "/get" == this->requestString ){
-					iPayloadSize = this->htmlUniGet( header, outbuf );
-
-				}else if( strcmp( requestString, "/set" ) == 0 ){
-					iPayloadSize = this->htmlUniSet( header, outbuf );
-				*/
+					
+					//this->response.setContentType( "text/plain" );
+					this->response.setContentBody( "x-httpd 14.12.08.1650 alpha<br>built: " __DATE__ __TIME__ );
+					this->response.write();
+					
 
 				}else{
 					//we should look on the disk for this file.
@@ -436,71 +416,14 @@ void x_httpd_request::processRequest(){
 					}else{
 					
 						//we could not find a registered filter above, so we'll now look for a static file on disk.
-					
-								
-								//Default resource handler: http://localhost:1312/ -> http://localhost:1312/index.htm
-								if( "/" == this->requestString ){
-									this->requestString = "/index.htm";
-								}
-								
-								
-								
-								//char webRoot[1024];
-								//findWebRoot( webRoot );
-								sprintf( caDbg, "webroot: %s\n", webRoot ); 
-								//XPLMDebugString(caDbg);
-								printf( caDbg );
-								
-								int iTempPayloadSize=0;
-								
-								char tmpFilename[2048];
-								sprintf( tmpFilename, "html%s", this->requestString.c_str() );
-								sprintf( caDbg, "Attempting to open and temp-cache the file:(%s)\n", tmpFilename ); 
-								printf( caDbg );
-								//XPLMDebugString(caDbg);
-								
-								
-								//fixme; make the file-extension detector work with more than just three letter extensions.
-								char tmpFileType[5];
-								memset(	tmpFileType, 0, 5 );
-								memcpy(
-										tmpFileType,
-										tmpFilename + (strlen(tmpFilename)-4), 
-										4
-										); //this should give us the file extension.
-								
-								printf( "File extension: %s\n", tmpFileType );
-								
-								
-								//FIXME: check requested filename for ".." parent dir strings
-								
-								char fullPath[4096];
-								sprintf( fullPath, "%s%s", webRoot, tmpFilename );
-								
-								char err_msg[1024];
-								int fileSize = getFileSize( fullPath, err_msg );
-								if( fileSize ){
-								
-									printf("* reading file for response..");
-								
-									char buffer[81920]; //80kb
-								
-									FILE *fp = fopen( fullPath, "rb" );
-									if( fp != NULL ){
-										//fixme: reading all in one massive chunk not so great for speed.
-										fread( buffer, fileSize, 1, fp );
-										fclose( fp );
-										
-										response.htmlGeneric( header, blob, buffer );
-										
-										iPayloadSize = strlen( blob );
-									}
-									
-									
-								
-								
-								}//else: 404
-								
+						
+						//Default resource handler: http://localhost:1312/ -> http://localhost:1312/index.htm
+						if( "/" == this->requestString ){
+							this->requestString = "/index.htm";
+						}
+						
+						
+						this->response.sendFile( this->requestString.c_str() );
 								
 								
 					} //end check for registered filter for uri
@@ -508,48 +431,24 @@ void x_httpd_request::processRequest(){
 				} //end of checks for builts-ins, registered-filters and static-files
 				
 				
-				
-				//double check content to see if we got a 404
-				if( iPayloadSize == 0 ){
-					printf("Failed to generate content. Defaulting to 404.\n");
-					iPayloadSize = this->response.html404Document( header, blob, this->requestString.c_str(), this->queryString.c_str() );
-				}
-
-				
+								
 
 		}else{
 			if( bLogDebugToConsole ){
 				sprintf( caDbg, "HTTP Auth is BAD!\n"); 
-				printf( caDbg );
+				printf( "%s", caDbg );
 				//XPLMDebugString( caDbg );
 
 				sprintf( caDbg, "recv: (%s) wanted: (%s)\n", authorizationToken.c_str(), this->sAuthTokenB64.c_str() ); 
-				printf( caDbg );
+				printf( "%s", caDbg );
 				//XPLMDebugString(caDbg);
 			}
-			iPayloadSize = this->response.htmlAccessDenied( header, blob );
+			
+			this->response.accessDenied("no reason","no message");
 			
 		}
 
-
-
-
-
-		//we have processed the request and gathered some kind of HTTP response.
-		//time to write it to the client.
-
-		//write header
-		fwrite( header, strlen(header), 1, sockOut );
-			char tmp[256];
-				sprintf(tmp, "Content-Length: %i\n\n", iPayloadSize);
-					fwrite( tmp, strlen(tmp), 1, sockOut );
-		
-			//write payload
-			fwrite( blob, iPayloadSize, 1, sockOut );
-
-		fflush( sockOut );
-
-}
+} //processRequest(..)
 
 
 
