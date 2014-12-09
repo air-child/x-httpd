@@ -35,6 +35,10 @@ x_httpd::x_httpd( int port ){
 	
 	//default value for username and password for auth
 	this->sAuthTokenRaw = "username:password";
+	
+	this->sWebFolder = std::string("/Applications/X-Plane 10 beta/Resources/plugins/x-httpd.x-plugin/x-httpd-content/");
+	printf("Content root:(%s)\n", this->sWebFolder.c_str());
+
 
 
 }
@@ -88,6 +92,8 @@ void x_httpd::run_slice( int time_usec ){
 
 
 		char caDbg[1024];
+		
+
 
 
 			static int socketsInit = 0;
@@ -170,6 +176,25 @@ void x_httpd::run_slice( int time_usec ){
 								//processConnection(c);
 								
 								x_httpd_request req = x_httpd_request( c, "auth_token_b64" );
+								req.setWebRoot( sWebFolder.c_str() );
+								
+								
+										//read all bytes the client has sent us
+										req.readClientRequest();
+
+										//socket data packet has been read, we should parse the new data.
+										req.parseRequest();
+										req.decodeUrlEntities();
+										req.parseAuthToken();
+
+										//parse the query string into a LUT of k/v pairs.
+										req.parseQuerystring(); //sort the query string into a LUT
+											
+										
+										//make choices about what content to serve
+										req.processRequest();
+		
+
 								
 								
 							}else{

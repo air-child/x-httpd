@@ -43,6 +43,8 @@ class x_httpd{
 		int bLogDebugToConsole;
 		
 		std::string sAuthTokenRaw;
+		
+		std::string sWebFolder;
 	
 	public:
 		x_httpd( int port );

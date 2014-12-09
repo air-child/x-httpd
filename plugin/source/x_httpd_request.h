@@ -63,7 +63,7 @@ class x_httpd_request{
 		int queryStringVCount;
 
 		
-		char webRoot[1024]; //folder path
+		std::string sWebRoot; //folder path
 		
 		
 		//mapping from filetype -> mime string
@@ -73,6 +73,9 @@ class x_httpd_request{
 	public:
 		x_httpd_request( int sock_client, std::string sAuthTokenB64 );
 		~x_httpd_request();
+		
+		
+		void setWebRoot( const char* folder );
 		
 		
 		void readClientRequest(); //read from socket

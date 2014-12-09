@@ -27,7 +27,7 @@ x_httpd_response::x_httpd_response(){
 
 
 	this->setResponse("HTTP/1.0 200 OK");
-	this->setContentBody("default content");
+	this->setContentBody("");
 
 
 }
@@ -76,6 +76,14 @@ Content-Length: 174
 
 
 void x_httpd_response::accessDenied( const char *reason, const char *message ){
+
+
+	this->setResponse("HTTP/1.0 401 Access Denied");
+	
+	this->setContentBody( "Access Denied" );
+
+	this->write();
+
 /*
 	sprintf( header, "%s", 	
 						"HTTP/1.0 401 Access Denied\n" 
@@ -99,12 +107,16 @@ void x_httpd_response::fileNotFound( const char *reason, const char *message ){
 
 	this->setResponse( "HTTP/1.0 404 Not Found" );
 	this->setContentType("text/html");
-	this->setContentBody("404!");
+	this->setContentBody( std::string(std::string("404") + reason).c_str() );
 
 } //fileNotFound
 
 
 
+
+/**
+Write our content to the client socket.
+*/
 void x_httpd_response::write(){
 
 
@@ -115,15 +127,22 @@ void x_httpd_response::write(){
 		sOutputBlob += this->sResponseType + "\n";
 		
 		//FIXME: iterate over headers and build string blob..
-
+		
 		sprintf(tmp, "Content-Length: %li", this->sBody.size() );
 		sOutputBlob += std::string( tmp ) + "\n";
+		
+		printf( "%s\n", tmp );
+		
 		
 		//blank line to mark the end of our header section
 		sOutputBlob += "\n";
 		
 		//main payload
 		sOutputBlob += this->sBody;
+
+
+		printf("---response blob---\n%s\n----end response blob----\n\n", sOutputBlob.c_str() );
+
 
 
 		fwrite( sOutputBlob.c_str(), sOutputBlob.size(), 1, this->sockOut );
@@ -141,72 +160,66 @@ void x_httpd_response::sendFile( const char *filename ){
 
 	char caDbg[2048];
 
-
-		sprintf( caDbg, "webroot: %s\n", this->sWebRoot.c_str() ); 
+		//convert function param to std::string
+		std::string sFilename = std::string( filename );
+		
+		
+		
+		size_t ext_pos = sFilename.find_last_of(".");
+		
+		if( std::string::npos == ext_pos ){
+			this->fileNotFound("file type decode failed", "");
+			return;
+		}
+		
+		std::string sFileType = sFilename.substr( ext_pos );
+		printf( "File extension: %s\n", sFileType.c_str() );
+		
+		
+		
+		//convert filename to useful content path local to our content folders.
+		std::string sTmpFilename = std::string("html") + sFilename;
+		
+		//report for debug
+		sprintf( caDbg, "Serving file:(%s)\n", sTmpFilename.c_str() ); 
 		printf( "%s", caDbg );
-
-		
-		
-		char tmpFilename[2048];
-		sprintf( tmpFilename, "html%s", filename );
-		
-		sprintf( caDbg, "Serving file:(%s)\n", tmpFilename ); 
-		printf( "%s", caDbg );
-		//XPLMDebugString(caDbg);
 		
 		
 		
-		//FIXME: make the file-extension detector work with more than just three letter extensions.
-		char tmpFileType[5];
-		memset(	tmpFileType, 0, 5 );
-		memcpy(
-				tmpFileType,
-				tmpFilename + (strlen(tmpFilename)-4), 
-				4
-				); //this should give us the file extension.
 		
-		printf( "File extension: %s\n", tmpFileType );
 		
 		
 		
 		//FIXME: check requested filename for ".." parent dir strings
 		
 		
-		
-		
-		char fullPath[4096];
-		sprintf( fullPath, "%s%s", this->sWebRoot.c_str(), tmpFilename );
-		
+		std::string sFullPath = this->sWebRoot + sTmpFilename;
 		
 		
 		char err_msg[1024];
-		size_t fileSize = getFileSize( fullPath, err_msg );
+		size_t fileSize = getFileSize( sFullPath.c_str(), err_msg );
 		if( fileSize ){
 		
 			printf("* reading file for response..\n");
-			printf("(%s)\n", fullPath );
+			printf("(%s)\n", sFullPath.c_str() );
+			
+			
+			char *buffer = (char*)calloc( fileSize, 1 );
 		
-			char buffer[81920]; //80kb
-		
-			FILE *fp = fopen( fullPath, "rb" );
-			if( fp != NULL ){
-				//fixme: reading all in one massive chunk not so great for speed.
-				fread( buffer, fileSize, 1, fp );
-				fclose( fp );
+				FILE *fp = fopen( sFullPath.c_str(), "rb" );
+				if( fp != NULL ){
+					//fixme: reading all in one massive chunk not so great for speed.
+					fread( buffer, fileSize, 1, fp );
+					fclose( fp );
+					
+					this->setContentBody( buffer, fileSize );
+					this->write();
+					
+				}else{
+					printf("* file not found.\n");
+				}
 				
-				this->setContentBody( buffer, fileSize );
-				this->write();
-				
-			}else{
-				printf("* file not found.\n");
-			}
-			
-			
-			
-			
-				//this->response.setContentType( "text/plain" );
-					//this->response.setContentBody( "x-httpd 14.12.08.1650 alpha<br>built: " __DATE__ __TIME__ );
-					//this->response.write();
+			free( buffer );
 		
 		
 		}//else: 404

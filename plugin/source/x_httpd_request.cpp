@@ -194,6 +194,8 @@ void x_httpd_request::parseRequest(){
 			//we now know which resource the client wants, eg:
 			// "/index.htm" or possibly "/../password.txt"
 			
+		}else{
+			this->response.accessDenied( "bad request", "server could not decode request." );
 		}
 
 
@@ -234,8 +236,6 @@ x_httpd_request::x_httpd_request( int sock_client, std::string sAuthTokenB64 ){
 	this->mapMimeTypes[".bin"] = "application/octet-stream";
 
 
-	//FIXME: Dynamic configuration required.
-	sprintf( this->webRoot, "/Applications/X-Plane 10 beta/Resources/plugins/x-httpd.x-plugin/x-httpd-content/" );
 	
 	this->sAuthTokenB64 = sAuthTokenB64;
 
@@ -247,24 +247,6 @@ x_httpd_request::x_httpd_request( int sock_client, std::string sAuthTokenB64 ){
 		this->sockIn = fdopen( this->sock_client, "rb" );
 		this->sockOut = fdopen( this->sock_client, "wb" );
 		this->response.setSocket( this->sockOut );
-		this->response.setWebRoot( this->webRoot );
-
-
-		//read all bytes the client has sent us
-		this->readClientRequest();
-
-		//socket data packet has been read, we should parse the new data.
-		this->parseRequest();
-		this->decodeUrlEntities();
-		this->parseAuthToken();
-
-		//parse the query string into a LUT of k/v pairs.
-		this->parseQuerystring(); //sort the query string into a LUT
-			
-		
-		//make choices about what content to serve
-		this->processRequest();
-		
 
 }
 
@@ -278,6 +260,20 @@ x_httpd_request::~x_httpd_request(){
 	close( this->sock_client );
 
 }
+
+
+
+
+void x_httpd_request::setWebRoot( const char *folder ){
+
+	this->sWebRoot = std::string( folder );
+
+	//pass on to response object..
+	this->response.setWebRoot( folder );
+
+	
+}
+
 
 
 
@@ -349,8 +345,6 @@ void x_httpd_request::processRequest(){
 		printf( "%s", caDbg );
 
 		
-		int iPayloadSize = 0;
-
 		if( 
 			( authorizationToken == this->sAuthTokenB64 ) 
 			|| ( ! bRequirePassword ) 
@@ -362,7 +356,7 @@ void x_httpd_request::processRequest(){
 		
 				if( "/about" == this->requestString ){
 					
-					//this->response.setContentType( "text/plain" );
+					this->response.setContentType( "text/html" );
 					this->response.setContentBody( "x-httpd 14.12.08.1650 alpha<br>built: " __DATE__ __TIME__ );
 					this->response.write();
 					
