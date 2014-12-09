@@ -182,67 +182,32 @@ void x_httpd_request::parseRequest(){
 			
 
 		
-		//copy raw request to a char blob for easier slicing with memcpy
-		char caRawData[8192];
-		strcpy( caRawData, this->rawData.c_str() );
-		
 		
 		
 		printf( "Parsed request(%li): RequestString: %li -> %li\n", iStringLen, iRequestStringStart, iRequestStringStop );
 		if( iRequestStringStart != std::string::npos && iRequestStringStop != std::string::npos ){
-			//memcpy( requestString, inbuf+iRequestStringStart, iRequestStringStop-iRequestStringStart );
 			
-			char caTmp[8192];
-			memset( caTmp, 0, 8192 );
-			memcpy( caTmp, caRawData + iRequestStringStart, iRequestStringStop - iRequestStringStart );
-
-			this->requestString = std::string( caTmp );
+			this->requestString = this->rawData.substr( iRequestStringStart, (iRequestStringStop - iRequestStringStart) );
 			
 			printf( "Extracted request string:(%s)\n", this->requestString.c_str() );
 			
-			//we now know which resource the client wants.
+			//we now know which resource the client wants, eg:
+			// "/index.htm" or possibly "/../password.txt"
 			
-		}else{
-			if( bLogDebugToConsole ){
-				printf(caDbg, "IRStart/IRStop; %i / %i\n", iRequestStringStart, iRequestStringStop );
-			}
 		}
 
 
-
-
-			//printf( "Parsed request(%i): QueryString: %i > %i\n", iStringLen, iRequestStringStart, iRequestStringStop );
-			if( iQueryStringStart != std::string::npos && iQueryStringStop != std::string::npos ){
-			
-				//FIXME: memcpy
-				char caTmp[8192];
-				memset( caTmp, 0, 8192 );
-				memcpy( caTmp, caRawData + iQueryStringStart, iQueryStringStop - iQueryStringStart );
-
-				this->queryString = std::string( caTmp );
-			
-				if( bLogDebugToConsole ){
-					sprintf(caDbg, "x-httpd request querystring: (%s)\n", this->queryString.c_str() ); 
-					printf( "%s", caDbg );
-					//XPLMDebugString(caDbg);
-				}
-				
-				
-			}else{
-				if( bLogDebugToConsole ){
-					sprintf( caDbg, "IQStart/IQStop; %li / %li\n", iQueryStringStart, iQueryStringStop ); 
-					printf( "%s", caDbg );
-					//XPLMDebugString(caDbg);
-				}
-				
-				//the user has submitted an ivalid request and we could not parse the requested-file string out of it.
-				
-				//FIXME: Terminate connection
-				
-				//close( c );
-				//return;
-				
+		printf( "Parsed query-string(%li): QueryString: %li > %li\n", iStringLen, iQueryStringStart, iQueryStringStop );
+		if( iQueryStringStart != std::string::npos && iQueryStringStop != std::string::npos ){
+		
+			this->queryString = this->rawData.substr( iQueryStringStart, iQueryStringStop - iQueryStringStart );
+		
+			if( bLogDebugToConsole ){
+				sprintf(caDbg, "x-httpd request querystring: (%s)\n", this->queryString.c_str() ); 
+				printf( "%s", caDbg );
+				//XPLMDebugString(caDbg);
 			}
+		}
 
 
 } //x_httpd_request::parseRequest(...)
