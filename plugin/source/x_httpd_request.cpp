@@ -273,6 +273,9 @@ x_httpd_request::x_httpd_request( int sock_client, std::string sAuthTokenB64 ){
 
 
 
+	this->hpt.start();
+
+
 }
 
 
@@ -320,6 +323,8 @@ void x_httpd_request::readClientRequest(){
 	size_t chunk_size = 0; //size of last chunk that was read
 	
 	
+	double hptStart = this->hpt.getElapsedTimeInMilliSec();
+	
 	do{ //loop until we read something
 	
 		do{ //loop while we read something
@@ -332,6 +337,14 @@ void x_httpd_request::readClientRequest(){
 			this->rawData += std::string( rxbuf, chunk_size );
 			
 		}while( chunk_size > 0 );
+		
+		
+		if( (this->hpt.getElapsedTimeInMilliSec() - hptStart) >= 1 ){
+			printf("!!! client->read() abort: time limit exceeded.\n");
+			this->response.serverError("time limit exceeded", "Your browser is too slow.");
+			break;
+		}
+		
 	
 	//add a test to see how long we've been in this loop, we cant stay forever!
 	}while( bytes_read == 0 );

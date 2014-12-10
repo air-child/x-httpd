@@ -19,6 +19,8 @@
 
 #include "x_httpd_response.h"
 
+#include "timer/Timer.h"
+
 
 class x_httpd_request{
 	private:
@@ -62,6 +64,7 @@ class x_httpd_request{
 		int queryStringVCount;
 
 		
+		Timer hpt;
 		
 	
 	public:

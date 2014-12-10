@@ -20,8 +20,11 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 
 #include "common_includes.h"
 
-
 #include "x_httpd_request.h"
+
+
+
+
 
 
 x_httpd::x_httpd( int port ){
@@ -39,6 +42,9 @@ x_httpd::x_httpd( int port ){
 	this->sWebFolder = std::string("/Applications/X-Plane 10 beta/Resources/plugins/x-httpd.x-plugin/x-httpd-content/");
 	printf("Content root:(%s)\n", this->sWebFolder.c_str());
 
+
+	printf("Starting hpt timer..\n");
+	this->hpt.start();
 
 
 }
@@ -67,7 +73,7 @@ void x_httpd::run_cli(){
 
 	for(;;){
 	
-		this->run_slice( 10 );
+		this->run_slice( 5 * 1000 ); //N ms
 		
 		//If we do NOT usleep then the network stack seems unable to feed us a large enough packet of data to read and parse as a valid request.
 		//usleep( 500 );
@@ -106,13 +112,26 @@ void x_httpd::run_slice( int time_usec ){
 			
 			}
 
+			
+			double hptStart = this->hpt.getElapsedTimeInMicroSec();
+
 
 			int c = 0; //client socket, populated by accept(...)
 			int clientCount = 0;
 			do{
 				clientCount++;
 			
-				if( clientCount >= 10 ){ break; } //we want to give x-plane priority, 10 clients per frame event.
+				if( clientCount >= 10 ){ 
+					printf("!!! breaking accept loop: >= 10 clients processed.\n");
+					break; 
+				} //we want to give x-plane priority, 10 clients per frame event.
+				
+				
+				if( (this->hpt.getElapsedTimeInMicroSec() - hptStart) > (double)time_usec ){
+					printf("!!! breaking accept loop: time limit.\n");
+					break;
+				} //we hit our max time limit as specified in function argument.
+				
 			
 				struct sockaddr_in from;
 				memset( &from, 0, sizeof( sockaddr_in ));
@@ -147,9 +166,12 @@ void x_httpd::run_slice( int time_usec ){
 							//printf( "x-httpd error: accept() error: -1, see errono.\n" );
 							
 						break;
+						
+					
+					
 					default:
 						printf("\n");
-						printf("accept()ed a connect: %i\n", c);
+						printf("accepted client: %i\n", c);
 						
 							char remoteAddress[32];
 							strcpy( remoteAddress, inet_ntoa(from.sin_addr) );
@@ -167,11 +189,14 @@ void x_httpd::run_slice( int time_usec ){
 									printf( "*** Connection from: %s\n", remoteAddress );
 								}
 						
-								//processConnection(c);
-								
+
+								//create new request object, passing our client socket and our auth-token
 								x_httpd_request req = x_httpd_request( c, "auth_token_b64" );
 								req.setWebRoot( sWebFolder.c_str() );
 								
+
+
+										//FIXME: Consolidate all these calls
 								
 										//read all bytes the client has sent us
 										req.readClientRequest();
@@ -183,7 +208,6 @@ void x_httpd::run_slice( int time_usec ){
 
 										//parse the query string into a LUT of k/v pairs.
 										req.parseQuerystring(); //sort the query string into a LUT
-											
 										
 										//make choices about what content to serve
 										req.processRequest();
@@ -192,15 +216,10 @@ void x_httpd::run_slice( int time_usec ){
 								
 								
 							}else{
-							
-								sprintf( caDbg, "x-httpd: Access Denied: allow_remote: %i\n", bAllowRemoteConnections );
-								//XPLMDebugString(caDbg);
-								printf( "%s", caDbg );
-							
-								//htmlAccessDenied
-								//TODO: send basic hard coded http packet with denied message
-							
-								close(c);
+								//remote connections are NOT allowed.
+								printf( "x-httpd: Access Denied: allow_remote: %i\n", bAllowRemoteConnections );
+								close(c); //drop client without writing any data.
+								
 							}
 						break;
 				}

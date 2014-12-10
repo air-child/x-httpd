@@ -31,7 +31,7 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 #include "io_utils.h"
 
 
-
+#include "timer/Timer.h"
 
 
 class x_httpd{
@@ -45,6 +45,9 @@ class x_httpd{
 		std::string sAuthTokenRaw;
 		
 		std::string sWebFolder;
+		
+		
+		Timer hpt;
 	
 	public:
 		x_httpd( int port );
