@@ -267,13 +267,25 @@ x_httpd_request::x_httpd_request( int sock_client, std::string sAuthTokenB64 ){
 	this->response.setSocket( this->sockOut );
 
 
-
 	//legacy code...
 	this->queryStringVCount = 0;
 
 
-
 	this->hpt.start();
+	
+	
+	this->mapResourceMap["/get/"] = std::string("Dataref getter."); //get/sim/system/leaf
+	this->mapResourceMap["/set/"] = std::string("Dataref setter."); //set/sim/system/leaf/value
+	
+	this->mapResourceMap["/cmd/"] = std::string("Command API."); // /cmd/start/foo || /cmd/stop/foo || /cmd/once/foo
+	
+	this->mapResourceMap["/sit/"] = std::string("Situation Loader."); // /sit/load/filename.sit
+	
+	this->mapResourceMap["/pause/"] = std::string("X-Plane Pause toggle."); // /pause/1 || /pause/0
+	
+	this->mapResourceMap["/quit"] = std::string("X-Plane remote quit."); //no option
+
+	this->mapResourceMap["/echo"] = std::string("Request echo. Debug browser packets."); //no option
 
 
 }
@@ -386,8 +398,21 @@ void x_httpd_request::readClientRequest(){
 
 void x_httpd_request::processRequest(){
 
-	char caDbg[1024];
 
+	//read all bytes the client has sent us
+	this->readClientRequest();
+
+	//socket data packet has been read, we should parse the new data.
+	this->parseRequest();
+	this->decodeUrlEntities();
+	this->parseAuthToken();
+
+	//parse the query string into a LUT of k/v pairs.
+	this->parseQuerystring(); //sort the query string into a LUT
+
+
+
+	char caDbg[1024];
 		
 		sprintf(caDbg, "x-httpd request: (%s)\n", this->requestString.c_str() ); 
 		printf( "%s", caDbg );
@@ -399,7 +424,7 @@ void x_httpd_request::processRequest(){
 		){
 		
 		
-			//split into tokens
+			//FIXME: split into tokens
 
 		
 				if( "/about" == this->requestString ){
@@ -425,7 +450,12 @@ void x_httpd_request::processRequest(){
 						
 						//We have located a module that wants to handle the request.
 						//Pass off to the X-Plane IPC handler code.
-						this->processRequest_IPC();
+						//this->processRequest_IPC();
+						
+						this->response.setContentType("text/plain");
+						this->response.setContentBody( it->second.c_str() );
+						this->response.write();
+						
 					
 					}else{
 					

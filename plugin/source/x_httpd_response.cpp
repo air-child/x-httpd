@@ -145,7 +145,7 @@ void x_httpd_response::write(){
 		
 		
 		//iterate over headers and build string blob..		
-		std::map<std::string, std::string>::iterator it;// = mapResourceMap.find( requestString );
+		std::map<std::string, std::string>::iterator it;
 		for( it=this->map_Headers.begin(); it != this->map_Headers.end(); ++it ){
 			if( it->first != "" ){
 				sOutputBlob += it->first + ": " + it->second + "\n";
@@ -164,7 +164,7 @@ void x_httpd_response::write(){
 
 		//response construction is complete, write to socket.
 
-		#if 1
+		#if 0
 		printf("---response blob---\n%s\n----end response blob----\n\n", sOutputBlob.c_str() );
 		#endif
 		

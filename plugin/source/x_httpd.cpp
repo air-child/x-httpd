@@ -195,24 +195,8 @@ void x_httpd::run_slice( int time_usec ){
 								req.setWebRoot( sWebFolder.c_str() );
 								
 
-
-										//FIXME: Consolidate all these calls
-								
-										//read all bytes the client has sent us
-										req.readClientRequest();
-
-										//socket data packet has been read, we should parse the new data.
-										req.parseRequest();
-										req.decodeUrlEntities();
-										req.parseAuthToken();
-
-										//parse the query string into a LUT of k/v pairs.
-										req.parseQuerystring(); //sort the query string into a LUT
-										
 										//make choices about what content to serve
 										req.processRequest();
-		
-
 								
 								
 							}else{
