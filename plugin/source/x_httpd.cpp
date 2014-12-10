@@ -70,11 +70,7 @@ void x_httpd::run_cli(){
 		this->run_slice( 10 );
 		
 		//If we do NOT usleep then the network stack seems unable to feed us a large enough packet of data to read and parse as a valid request.
-		
-		//100 yeilds occasional parser errors, especially with FireFox.
-		//usleep( 100 );
-		
-		usleep( 500 );
+		//usleep( 500 );
 	
 	}
 }
@@ -232,10 +228,12 @@ void x_httpd::initSockets(){
       //  }
 
 
+		int server_port_number = 1312;
+
 		struct sockaddr_in sin;
 		
 		sin.sin_family=AF_INET;
-		sin.sin_port=htons(1312);
+		sin.sin_port=htons(server_port_number);
 			//net_aton("127.0.0.1", &(sin.sin_addr));
 		sin.sin_addr.s_addr= htonl(INADDR_ANY);
 
@@ -249,11 +247,11 @@ void x_httpd::initSockets(){
 		fcntl( sock, F_SETFL, sflags | O_NONBLOCK );
 		
 		if( bind( sock, (const sockaddr*)&sin, sizeof(sin) ) != 0 ){
-			printf("x-httpd: Failed to bind server socket to port: %i\n", sin.sin_port);
+			printf("x-httpd: Failed to bind server socket to port: %i\n", server_port_number);
 			return;
 		}else{
 			listen( sock, 5 );
-			printf("Socket listening on port %i.\n", ntohs(sin.sin_port));
+			printf("Socket listening on port %i.\n", server_port_number);
 		}
 	
 
