@@ -76,7 +76,7 @@ void x_httpd::run_cli(){
 		this->run_slice( 5 * 1000 ); //N ms
 		
 		//If we do NOT usleep then the network stack seems unable to feed us a large enough packet of data to read and parse as a valid request.
-		//usleep( 500 );
+		usleep( 1000 ); //1ms sleep between run slices
 	
 	}
 }
