@@ -249,7 +249,6 @@ void x_httpd_response::sendFile( const char *filename ){
 		
 				FILE *fp = fopen( sFullPath.c_str(), "rb" );
 				if( fp != NULL ){
-					//fixme: reading all in one massive chunk not so great for speed.
 					fread( buffer, fileSize, 1, fp );
 					fclose( fp );
 					
