@@ -54,6 +54,15 @@ void x_httpd_response::setWebRoot( const char* webRoot ){
 
 void x_httpd_response::redirect( const char *target ){
 
+	this->setResponse("HTTP/1.1 301 Moved Permanently");
+	this->setHeader("Location", target);
+	this->setContentType("text/plain");
+	
+	std::string sContentBody = std::string("Moved: ") + target;	
+	this->setContentBody( sContentBody.c_str() );
+	
+	this->write();
+
 /*
 HTTP/1.1 301 Moved Permanently
 Location: http://www.example.org/
@@ -71,7 +80,7 @@ Content-Length: 174
 </html>
 */
 
-}
+} //redirect(...)
 
 
 
@@ -80,7 +89,9 @@ void x_httpd_response::accessDenied( const char *reason, const char *message ){
 
 	this->setResponse("HTTP/1.0 401 Access Denied");
 	
-	this->setContentBody( "Access Denied" );
+	std::string sFailureMessage = "<b>Access Denied:" + std::string(reason) + "</b><br>" + std::string(message) + "<br>";
+	
+	this->setContentBody( sFailureMessage.c_str() );
 
 	this->write();
 
@@ -108,6 +119,7 @@ void x_httpd_response::fileNotFound( const char *reason, const char *message ){
 	this->setResponse( "HTTP/1.0 404 Not Found" );
 	this->setContentType("text/html");
 	this->setContentBody( std::string(std::string("404") + reason).c_str() );
+	this->write();
 
 } //fileNotFound
 
@@ -126,7 +138,14 @@ void x_httpd_response::write(){
 		std::string sOutputBlob = "";
 		sOutputBlob += this->sResponseType + "\n";
 		
-		//FIXME: iterate over headers and build string blob..
+		//iterate over headers and build string blob..		
+		std::map<std::string, std::string>::iterator it;// = mapResourceMap.find( requestString );
+		for( it=this->map_Headers.begin(); it != this->map_Headers.end(); ++it ){
+		
+			sOutputBlob += it->first + ": " + it->second + "\n";
+		
+		}
+		
 		
 		sprintf(tmp, "Content-Length: %li", this->sBody.size() );
 		sOutputBlob += std::string( tmp ) + "\n";
@@ -142,9 +161,6 @@ void x_httpd_response::write(){
 
 
 		printf("---response blob---\n%s\n----end response blob----\n\n", sOutputBlob.c_str() );
-
-
-
 		fwrite( sOutputBlob.c_str(), sOutputBlob.size(), 1, this->sockOut );
 
 
@@ -162,18 +178,39 @@ void x_httpd_response::sendFile( const char *filename ){
 
 		//convert function param to std::string
 		std::string sFilename = std::string( filename );
+
+		std::string sFileType = ""; //default to blank .extension for file type
 		
 		
-		
+		//attempt to determine filetype by .extension
 		size_t ext_pos = sFilename.find_last_of(".");
+		if( std::string::npos != ext_pos ){
 		
-		if( std::string::npos == ext_pos ){
-			this->fileNotFound("file type decode failed", "");
-			return;
-		}
+			//we were able to locate a filetype .extension
+			sFileType = sFilename.substr( ext_pos );
+			printf( "File extension: %s\n", sFileType.c_str() );
+			
+			//Modify our response headers based on the .extension
+			std::map<std::string, std::string>::iterator it;
+			it = this->mapMimeTypes.find( sFileType );
+			
+			if( it != this->mapMimeTypes.end() ){
+				//we found a known mime-type, use it.
+				this->setContentType( it->second.c_str() );
+				
+			}else{
+				
+				//default to octent-string binary downloads for exotic file types.
+				this->setContentType( "application/octet-string" );
+			
+				//debug assist:
+				//this will fail with exotic binary types but is good for debugging.
+				this->setContentType("text/plain");
+				
+			}//end detect-mime-type header
+			
+		}//end detect file .extension and mime_type from same
 		
-		std::string sFileType = sFilename.substr( ext_pos );
-		printf( "File extension: %s\n", sFileType.c_str() );
 		
 		
 		
@@ -186,16 +223,22 @@ void x_httpd_response::sendFile( const char *filename ){
 		
 		
 		
+		//Check requested filename for ".." parent dir strings
+		if( sTmpFilename.find("..") != std::string::npos ){
+			
+			//this is an illegal request attempting to mess with file path data
+			this->accessDenied("Illegal path.", "Client requested illegal resource path.");
+			return;
+			
+		} 
 		
 		
 		
-		
-		//FIXME: check requested filename for ".." parent dir strings
-		
-		
+		//full path to file on disk
 		std::string sFullPath = this->sWebRoot + sTmpFilename;
 		
 		
+		//get the filesize of the target to determine if the file actually exists.
 		char err_msg[1024];
 		size_t fileSize = getFileSize( sFullPath.c_str(), err_msg );
 		if( fileSize ){
@@ -217,10 +260,15 @@ void x_httpd_response::sendFile( const char *filename ){
 					
 				}else{
 					printf("* file not found.\n");
+					this->fileNotFound("404 File Not Found", "The requested file was not found on disk.");
 				}
 				
 			free( buffer );
 		
+		
+		}else{
+		
+			this->fileNotFound("File is zero bytes.", "The requested file is zero bytes.");
 		
 		}//else: 404
 
@@ -249,7 +297,7 @@ void x_httpd_response::header200OK_MIME( char *header, const char* mime_string )
 
 int x_httpd_response::htmlSendBinary( char *header, char *html, unsigned char *buffer, int size, char *fileType ){
 
-
+/*
 	//TODO: upgrade to use iterator.
 	std::string sMimeTypeKey = std::string( fileType );
 	
@@ -269,6 +317,9 @@ int x_httpd_response::htmlSendBinary( char *header, char *html, unsigned char *b
 
 	return size;
 
+*/
+
+	return 0;
 }
 
 

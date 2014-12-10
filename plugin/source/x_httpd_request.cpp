@@ -350,40 +350,46 @@ void x_httpd_request::processRequest(){
 			|| ( ! bRequirePassword ) 
 		){
 		
-			if( bLogDebugToConsole ){
-				//sprintf( caDbg, "Authorization is good!\n"); XPLMDebugString(caDbg);
-			}
+
 		
 				if( "/about" == this->requestString ){
 					
 					this->response.setContentType( "text/html" );
-					this->response.setContentBody( "x-httpd 14.12.08.1650 alpha<br>built: " __DATE__ __TIME__ );
+					this->response.setContentBody( "x-httpd 14.12.11.0010 alpha<br>built: " __DATE__ __TIME__ );
 					this->response.write();
-					
+
+				}else if( "/redirect_test" == this->requestString ){
+				
+					this->response.redirect("http://lmgtfy.com/?q=rtfm");
 
 				}else{
-					//we should look on the disk for this file.
 					
-					//EXPERIMENTAL
+					//No built in URL wants to deal with this request..
+					//We shall now look for any module that wants to handle it.
+					//If no module wants it we attempt to serve it as a request for a static file.
+					
+
 					//check to see if another plugin has registered to handle this resource..
-					std::map<std::string, std::string>::iterator it = mapResourceMap.find( std::string(requestString) );
-					
+					std::map<std::string, std::string>::iterator it = mapResourceMap.find( requestString );
 					if( it != mapResourceMap.end() ){
-					
+						
+						//We have located a module that wants to handle the request.
+						//Pass off to the X-Plane IPC handler code.
 						this->processRequest_IPC();
 					
 					}else{
 					
 						//we could not find a registered filter above, so we'll now look for a static file on disk.
 						
-						//Default resource handler: http://localhost:1312/ -> http://localhost:1312/index.htm
 						if( "/" == this->requestString ){
+							//establish our default site filename.
+							//FIXME: Make this user configurable via class functions?
 							this->requestString = "/index.htm";
 						}
 						
-						
+						//pass the request into the response handler class.
+						//any 404 message or other failure code will be further handled by this "sendFile" function.
 						this->response.sendFile( this->requestString.c_str() );
-								
 								
 					} //end check for registered filter for uri
 
@@ -393,6 +399,10 @@ void x_httpd_request::processRequest(){
 								
 
 		}else{
+		
+			//Authentication details failed.
+			//Auth required.
+		
 			if( bLogDebugToConsole ){
 				sprintf( caDbg, "HTTP Auth is BAD!\n"); 
 				printf( "%s", caDbg );
@@ -403,7 +413,7 @@ void x_httpd_request::processRequest(){
 				//XPLMDebugString(caDbg);
 			}
 			
-			this->response.accessDenied("no reason","no message");
+			this->response.accessDenied("Unknown user.","The username and password provided are invalid.");
 			
 		}
 
