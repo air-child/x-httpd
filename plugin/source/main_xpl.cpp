@@ -26,6 +26,8 @@ PLUGIN_API int XPluginStart(
 		char caDbg[1024];
 
 
+
+
 		char caHostName[255];
 		gethostname(caHostName, 255);
 		
@@ -35,10 +37,9 @@ PLUGIN_API int XPluginStart(
 		char *caLocalIP;
 		caLocalIP = inet_ntoa( *(struct in_addr *)*host_entry->h_addr_list);
 		
-		
-
 		sprintf( caDbg, "x-httpd: hostname: %s ip: %s\n", caHostName, caLocalIP );
 		XPLMDebugString( caDbg );
+
 
 		
 

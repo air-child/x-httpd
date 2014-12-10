@@ -11,10 +11,6 @@
 
 
 
-#define X_HTTPD_VERSION_STRING "x-httpd v14.12.06.1913 (C) 2005,2013-2014, br@x-plugins.com"
-
-
-
 #include <iostream>
 
 #include <map>
@@ -42,6 +38,8 @@ class x_httpd_response{
 		FILE* sockOut; //FILE* socket output
 		
 		int bLogDebugToConsole; //mostly ignored.
+		
+		//bool RequireAuth;
 		
 		
 		std::string sWebRoot; //root folder of static web content

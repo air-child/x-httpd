@@ -21,7 +21,6 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 
 #include "common_includes.h"
 
-
 #include "global_defs.h"
 #include "http.h"
 #include "drefs.h"
@@ -56,9 +55,9 @@ int WidgetCallback(
                   
 
 
-    #define TOP_SHIFT 20
-    #define BOT_SHIFT 12
-    #define CONFIG_STRING_SIZE 256
+    int TOP_SHIFT=20
+    int BOT_SHIFT=12
+    int CONFIG_STRING_SIZE=256
 
 
 

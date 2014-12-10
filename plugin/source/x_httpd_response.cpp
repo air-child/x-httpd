@@ -8,6 +8,8 @@
 
 #include "x_httpd_response.h"
 
+#include "global_defs.h"
+
 #include "io_utils.h"
 
 
@@ -26,9 +28,10 @@ x_httpd_response::x_httpd_response(){
 
 
 	this->WriteBlock = false;
+	
 
-
-	this->setResponse("HTTP/1.0 200 OK");
+	this->setResponse(XHTTPD_HTTP_VERSION " 200 OK");
+	this->setContentType("text/plain");
 	this->setContentBody("");
 
 
@@ -56,7 +59,7 @@ void x_httpd_response::setWebRoot( const char* webRoot ){
 
 void x_httpd_response::redirect( const char *target ){
 
-	this->setResponse("HTTP/1.1 301 Moved Permanently");
+	this->setResponse(XHTTPD_HTTP_VERSION " 301 Moved Permanently");
 	this->setHeader("Location", target);
 	this->setContentType("text/plain");
 	
@@ -71,7 +74,7 @@ void x_httpd_response::redirect( const char *target ){
 
 void x_httpd_response::serverError( const char *reason, const char *message ){
 
-	this->setResponse("HTTP/1.0 500 Server Error");
+	this->setResponse(XHTTPD_HTTP_VERSION " 500 Server Error");
 	
 	std::string payload = "<b>500 Server Error: " + std::string(reason) + "</b><br>" + std::string(message);
 	
@@ -86,10 +89,10 @@ void x_httpd_response::serverError( const char *reason, const char *message ){
 void x_httpd_response::accessDenied( const char *reason, const char *message ){
 
 
-	this->setResponse("HTTP/1.0 401 Access Denied");
+	this->setResponse(XHTTPD_HTTP_VERSION " 401 Access Denied");
 	
-	//FIXME: apply this if we are in login-required mode.
-	//this->setHeader( "WWW-Authenticate", "Basic realm=\"X-Plane\"\n" );
+
+	this->setHeader( "WWW-Authenticate", "Basic realm=\"X-Plane\"\n" );
 	
 	
 	std::string sFailureMessage = "<b>Access Denied:" + std::string(reason) + "</b><br>" + std::string(message) + "<br>";
@@ -104,9 +107,9 @@ void x_httpd_response::accessDenied( const char *reason, const char *message ){
 
 void x_httpd_response::fileNotFound( const char *reason, const char *message ){
 
-	this->setResponse( "HTTP/1.0 404 Not Found" );
+	this->setResponse( XHTTPD_HTTP_VERSION " 404 Not Found" );
 	this->setContentType("text/html");
-	this->setContentBody( std::string(std::string("404") + reason).c_str() );
+	this->setContentBody( std::string(std::string(reason) + "<br>" + std::string(message) ).c_str() );
 	this->write();
 
 } //fileNotFound
@@ -133,7 +136,14 @@ void x_httpd_response::write(){
 
 		char tmp[1024]; //used for numeric converion to C-string, etc.
 		
-		this->setHeader("Server", "x-httpd v14.12.11 alpha CLI mode.");
+		this->setHeader("Server", XHTTPD_SERVER_MESSAGE);
+		
+		//Set this header at response handler level.
+		/*
+		if( this->RequireAuth ){
+			this->setHeader( "WWW-Authenticate", "Basic realm=\"X-Plane\"\n" );
+		}
+		*/
 		
 		//calculate body size based on payload contents at write time.
 		sprintf(tmp, "%li", this->sBody.size() );

@@ -133,32 +133,11 @@
 		08FB77ADFE841716C02AAC07 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				32BAE0B30371A71500C91783 /* x-httpd_Prefix.pch */,
-				2316C5DA07CE06E400C86874 /* main_xpl.h */,
-				08FB77B2FE8417CDC02AAC07 /* main_xpl.cpp */,
-				233DFB540921C2B80008D35B /* b64.h */,
-				233DFB550921C2B80008D35B /* b64.cpp */,
-				234964F2183B9526001F6498 /* x_httpd.cpp */,
-				234964F3183B9526001F6498 /* x_httpd.h */,
-				2340D52C1A34444C0081BC82 /* main_cli.cpp */,
-				2340D5301A3444E60081BC82 /* main_cli.h */,
-				2340D52D1A34444C0081BC82 /* x_httpd_cli.1 */,
-				23496501183BB82E001F6498 /* global_defs.cpp */,
-				234964FA183B9644001F6498 /* global_defs.h */,
-				234964FB183B992E001F6498 /* common_sdk.h */,
-				234964FC183B99B0001F6498 /* drefs.cpp */,
-				234964FD183B99B0001F6498 /* drefs.h */,
-				23496500183BB7B5001F6498 /* common_includes.h */,
-				23BBB5B6183E6C01001E3038 /* ixplc.cpp */,
-				23BBB5B7183E6C01001E3038 /* ixplc.h */,
-				239EF5A91A32FE1300A0715F /* mime_types.cpp */,
-				239EF5AA1A32FE1300A0715F /* mime_types.h */,
-				2340D5311A3448310081BC82 /* io_utils.cpp */,
-				2340D5321A3448310081BC82 /* io_utils.h */,
-				2340D5381A3476EC0081BC82 /* x_httpd_request.cpp */,
-				2340D5391A3476EC0081BC82 /* x_httpd_request.h */,
-				2340D53D1A3476FB0081BC82 /* x_httpd_response.cpp */,
-				2340D53E1A3476FB0081BC82 /* x_httpd_response.h */,
+				2340D5461A38AB3F0081BC82 /* shared */,
+				2340D5451A38AB0B0081BC82 /* CLI */,
+				2340D5441A38AAFB0081BC82 /* x-plane */,
+				2340D5431A38AAEA0081BC82 /* third party source */,
+				2340D5421A38AADB0081BC82 /* httpd */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -170,6 +149,67 @@
 				2340D5211A3442B30081BC82 /* x-httpd-cli */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		2340D5421A38AADB0081BC82 /* httpd */ = {
+			isa = PBXGroup;
+			children = (
+				234964F2183B9526001F6498 /* x_httpd.cpp */,
+				234964F3183B9526001F6498 /* x_httpd.h */,
+				2340D5381A3476EC0081BC82 /* x_httpd_request.cpp */,
+				2340D5391A3476EC0081BC82 /* x_httpd_request.h */,
+				2340D53D1A3476FB0081BC82 /* x_httpd_response.cpp */,
+				2340D53E1A3476FB0081BC82 /* x_httpd_response.h */,
+			);
+			name = httpd;
+			sourceTree = "<group>";
+		};
+		2340D5431A38AAEA0081BC82 /* third party source */ = {
+			isa = PBXGroup;
+			children = (
+				233DFB540921C2B80008D35B /* b64.h */,
+				233DFB550921C2B80008D35B /* b64.cpp */,
+			);
+			name = "third party source";
+			sourceTree = "<group>";
+		};
+		2340D5441A38AAFB0081BC82 /* x-plane */ = {
+			isa = PBXGroup;
+			children = (
+				23BBB5B6183E6C01001E3038 /* ixplc.cpp */,
+				23BBB5B7183E6C01001E3038 /* ixplc.h */,
+				2316C5DA07CE06E400C86874 /* main_xpl.h */,
+				08FB77B2FE8417CDC02AAC07 /* main_xpl.cpp */,
+				234964FB183B992E001F6498 /* common_sdk.h */,
+				234964FC183B99B0001F6498 /* drefs.cpp */,
+				234964FD183B99B0001F6498 /* drefs.h */,
+			);
+			name = "x-plane";
+			sourceTree = "<group>";
+		};
+		2340D5451A38AB0B0081BC82 /* CLI */ = {
+			isa = PBXGroup;
+			children = (
+				2340D52D1A34444C0081BC82 /* x_httpd_cli.1 */,
+				2340D52C1A34444C0081BC82 /* main_cli.cpp */,
+				2340D5301A3444E60081BC82 /* main_cli.h */,
+			);
+			name = CLI;
+			sourceTree = "<group>";
+		};
+		2340D5461A38AB3F0081BC82 /* shared */ = {
+			isa = PBXGroup;
+			children = (
+				32BAE0B30371A71500C91783 /* x-httpd_Prefix.pch */,
+				23496501183BB82E001F6498 /* global_defs.cpp */,
+				234964FA183B9644001F6498 /* global_defs.h */,
+				23496500183BB7B5001F6498 /* common_includes.h */,
+				239EF5A91A32FE1300A0715F /* mime_types.cpp */,
+				239EF5AA1A32FE1300A0715F /* mime_types.h */,
+				2340D5311A3448310081BC82 /* io_utils.cpp */,
+				2340D5321A3448310081BC82 /* io_utils.h */,
+			);
+			name = shared;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

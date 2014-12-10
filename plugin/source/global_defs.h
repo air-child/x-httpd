@@ -20,19 +20,14 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 #define x_httpd_global_defs_h
 
 
+#define XHTTPD_SERVER_MESSAGE "x-httpd v14.12.11.0225 alpha"
 
-#include "common_includes.h"
+#define XHTTPD_HTTP_VERSION "HTTP/1.0"
 
 
 
+//FIXME: move all this to an x-plane specific file... not needed in defs
 extern char hack_blob[8192];
-
-extern int bAllowRemoteConnections; //allow http connections from hosts other than localhost
-
-extern int bRequirePassword; //require http authentication.
-
-extern int bLogDebugToConsole;
-
 
 
 #endif

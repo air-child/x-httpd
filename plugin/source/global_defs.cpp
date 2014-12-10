@@ -19,13 +19,6 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 #include "global_defs.h"
 
 
-
 //Used for magic IPC interchange.
 char hack_blob[8192];
-
-int bAllowRemoteConnections = 0; //allow http connections from hosts other than localhost
-
-int bRequirePassword = 1; //require http authentication.
-
-int bLogDebugToConsole = 0;
 

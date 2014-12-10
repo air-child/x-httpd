@@ -8,7 +8,10 @@
 
 #include "x_httpd_request.h"
 
+#include "global_defs.h"
+
 #include "io_utils.h"
+
 
 
 //extract auth token from raw data
@@ -255,17 +258,23 @@ x_httpd_request::x_httpd_request( int sock_client, std::string sAuthTokenB64 ){
 	this->bRequirePassword = 0;
 	this->sAuthTokenB64 = sAuthTokenB64;
 
+
 	this->bLogDebugToConsole = 1;
 
+
+	//legacy code...
 	this->queryStringVCount = 0;
 
 
 	this->mapMimeTypes[".htm"] = "text/html";
-	this->mapMimeTypes[".js"] = "text/plain"; //FIXME
+	this->mapMimeTypes[".js"] = "application/javascript";
+	this->mapMimeTypes[".json"] = "application/json";
 	this->mapMimeTypes[".txt"] = "text/plain";
 	this->mapMimeTypes[".css"] = "test/css";
 	this->mapMimeTypes[".xml"] = "application/xml";
 	this->mapMimeTypes[".png"] = "image/png";
+	this->mapMimeTypes[".jpg"] = "image/jpeg";
+	this->mapMimeTypes[".gif"] = "image/gif";
 	this->mapMimeTypes[".ico"] = "image/x-icon";
 	this->mapMimeTypes[".swf"] = "application/x-shockwave-flash";
 	this->mapMimeTypes[".bin"] = "application/octet-stream";
@@ -393,7 +402,7 @@ void x_httpd_request::processRequest(){
 				if( "/about" == this->requestString ){
 					
 					this->response.setContentType( "text/html" );
-					this->response.setContentBody( "x-httpd 14.12.11.0010 alpha<br>built: " __DATE__ __TIME__ );
+					this->response.setContentBody( XHTTPD_SERVER_MESSAGE "<br>built: " __DATE__ __TIME__ );
 					this->response.write();
 
 				}else if( "/redirect_test" == this->requestString ){
@@ -524,7 +533,7 @@ void x_httpd_request::processRequest_IPC(){
 			//if the IPC code fails because a plugin does not answer (disabled/unloaded/etc)
 			//the server will return a 500 server error packet for the requested item
 			memset( hack_blob, 0, 8192 );
-			sprintf( hack_blob, "HTTP/1.0 500 OK\r\n\r\n500: ixplc failed: timeout." );
+			sprintf( hack_blob, XHTTPD_HTTP_VERSION " 500 OK\r\n\r\n500: ixplc failed: timeout." );
 
 	
 	
