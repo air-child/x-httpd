@@ -286,8 +286,6 @@ void x_httpd_request::readClientRequest(){
 
 	// ------ Socket Read Loop ----
 	
-	size_t bytes_read = 0; //total bytes read
-	size_t chunk_size = 0; //size of last chunk that was read
 	
 	
 	//temporary RX buffer, any read op must be <= this buffer size.
@@ -296,17 +294,27 @@ void x_httpd_request::readClientRequest(){
 	
 	
 	this->rawData = ""; //erase the content storage.
+
+	size_t bytes_read = 0; //total bytes read
+	size_t chunk_size = 0; //size of last chunk that was read
 	
-	do{
-
-		//attempts to read more than 1 byte at a time result in a blank http packet???
-		chunk_size = fread( rxbuf, 1, 1, sockIn );
-		bytes_read += chunk_size;
-
-		//append byte-string to existing byte-string data
-		this->rawData += std::string( rxbuf, chunk_size );
+	
+	do{ //loop until we read something
+	
+		do{ //loop while we read something
 		
-	}while( chunk_size > 0 );
+			//attempts to read more than 1 byte at a time result in a blank http packet???
+			chunk_size = fread( rxbuf, 1, 1, sockIn );
+			bytes_read += chunk_size;
+
+			//append byte-string to existing byte-string data
+			this->rawData += std::string( rxbuf, chunk_size );
+			
+		}while( chunk_size > 0 );
+	
+	//add a test to see how long we've been in this loop, we cant stay forever!
+	}while( bytes_read == 0 );
+	
 	
 
 	//DO NOT close socket or socket read/write FILE* handles until we're completely finished with request.
