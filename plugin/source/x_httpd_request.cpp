@@ -47,11 +47,18 @@ void x_httpd_request::parseAuthToken(){
 
 void x_httpd_request::decodeUrlEntities(){
 
+
+	//FIXME: Accept a work-payload param instead of assuming we need to clean the QueryString.
+
+
+
 	//FIXME: Entity decoding is a hack.
 	//time to repair the request and query string data
 	
 	std::string fixUrlEntities = queryString;
 	std::string::size_type startPos;
+	
+	//DECODE
 	//find / chars
 	do{
 			startPos = fixUrlEntities.find("%2F");
@@ -77,9 +84,30 @@ void x_httpd_request::decodeUrlEntities(){
 				fixUrlEntities.replace( startPos, 3, "]" );
 			}
 	}while( (int)startPos >= 0 );
-			
+	
 
+	// <
+	do{
+			startPos = fixUrlEntities.find("%3C");
+			if( (int)startPos >= 0 ){
+				fixUrlEntities.replace( startPos, 3, "<" );
+			}
+	}while( (int)startPos >= 0 );
+			
+	// >
+	do{
+			startPos = fixUrlEntities.find("%3E");
+			if( (int)startPos >= 0 ){
+				fixUrlEntities.replace( startPos, 3, ">" );
+			}
+	}while( (int)startPos >= 0 );
+							
+
+
+	//ENCODE FOR ____?
+	//FIXME: Why are these encoded?
 	//find < chars
+	/*
 	do{
 			startPos = fixUrlEntities.find("<");
 			if( (int)startPos >= 0 ){
@@ -93,15 +121,17 @@ void x_httpd_request::decodeUrlEntities(){
 				fixUrlEntities.replace( startPos, 1, "&gt;" );
 			}
 	}while( (int)startPos >= 0 );
-					
+	*/
 					
 
+					
+	//FIXME: return a clean string instead of modifying query string directly.
 					
 	//strcpy( queryString, fixUrlEntities.c_str() );
 	this->queryString = fixUrlEntities;
 	if( bLogDebugToConsole ){
 		char caDbg[1024];
-		sprintf( caDbg, "Decoded URL: (%s)\n", this->queryString.c_str() ); 
+		sprintf( caDbg, "Clean QueryString: (%s)\n", this->queryString.c_str() ); 
 		printf( "%s", caDbg );
 		//XPLMDebugString(caDbg);
 	}
@@ -184,23 +214,20 @@ void x_httpd_request::parseRequest(){
 		
 		
 		
-		printf( "Parsed request(%li): RequestString: %li -> %li\n", iStringLen, iRequestStringStart, iRequestStringStop );
+		//printf( "Parsed request(%li): RequestString: %li -> %li\n", iStringLen, iRequestStringStart, iRequestStringStop );
 		if( iRequestStringStart != std::string::npos && iRequestStringStop != std::string::npos ){
-			
 			this->requestString = this->rawData.substr( iRequestStringStart, (iRequestStringStop - iRequestStringStart) );
-			
-			printf( "Extracted request string:(%s)\n", this->requestString.c_str() );
-			
+			printf( "  Raw RequestString:(%s)\n", this->requestString.c_str() );
 			//we now know which resource the client wants, eg:
 			// "/index.htm" or possibly "/../password.txt"
 			
 		}else{
-			//this->response.accessDenied( "bad request", "server could not decode request." );
-			
+			//500 Server Error!
 			this->response.serverError("Request Decode Failed","Could not decode the requested URI.");
 			return;
 			
 		}
+
 
 
 		printf( "Parsed query-string(%li): QueryString: %li > %li\n", iStringLen, iQueryStringStart, iQueryStringStop );
@@ -209,7 +236,7 @@ void x_httpd_request::parseRequest(){
 			this->queryString = this->rawData.substr( iQueryStringStart, iQueryStringStop - iQueryStringStart );
 		
 			if( bLogDebugToConsole ){
-				sprintf(caDbg, "x-httpd request querystring: (%s)\n", this->queryString.c_str() ); 
+				sprintf(caDbg, "  Raw QueryString: (%s)\n", this->queryString.c_str() ); 
 				printf( "%s", caDbg );
 				//XPLMDebugString(caDbg);
 			}
@@ -226,7 +253,11 @@ void x_httpd_request::parseRequest(){
 x_httpd_request::x_httpd_request( int sock_client, std::string sAuthTokenB64 ){
 
 	this->bRequirePassword = 0;
+	this->sAuthTokenB64 = sAuthTokenB64;
+
 	this->bLogDebugToConsole = 1;
+
+	this->queryStringVCount = 0;
 
 
 	this->mapMimeTypes[".htm"] = "text/html";
@@ -239,18 +270,12 @@ x_httpd_request::x_httpd_request( int sock_client, std::string sAuthTokenB64 ){
 	this->mapMimeTypes[".swf"] = "application/x-shockwave-flash";
 	this->mapMimeTypes[".bin"] = "application/octet-stream";
 
-
 	
-	this->sAuthTokenB64 = sAuthTokenB64;
-
-	this->queryStringVCount = 0;
-	
-	
-		//setup socket and FILE* for read/write of socket
-		this->sock_client = sock_client;
-		this->sockIn = fdopen( this->sock_client, "rb" );
-		this->sockOut = fdopen( this->sock_client, "wb" );
-		this->response.setSocket( this->sockOut );
+	//setup socket and FILE* for read/write of socket
+	this->sock_client = sock_client;
+	this->sockIn = fdopen( this->sock_client, "rb" );
+	this->sockOut = fdopen( this->sock_client, "wb" );
+	this->response.setSocket( this->sockOut );
 
 }
 
@@ -323,8 +348,8 @@ void x_httpd_request::readClientRequest(){
 	// --- End Socket Read Loop ---
 	
 	
-	#if 1
-	if( bLogDebugToConsole ){
+	#if 0
+	//dump raw request blob
 		char caDbg[1024];
 
 		sprintf(caDbg, "---recv x-httpd request, %i bytes---\n", (int) this->rawData.size() );
@@ -338,7 +363,6 @@ void x_httpd_request::readClientRequest(){
 		sprintf(caDbg, "--- end recv ---\n");
 		printf( caDbg );
 		//XPLMDebugString(caDbg);
-	}
 	#endif
 
 }
@@ -362,6 +386,8 @@ void x_httpd_request::processRequest(){
 			|| ( ! bRequirePassword ) 
 		){
 		
+		
+			//split into tokens
 
 		
 				if( "/about" == this->requestString ){
@@ -439,72 +465,72 @@ void x_httpd_request::processRequest(){
 
 void x_httpd_request::processRequest_IPC(){
 
-						#if 0
+	#if 0
 
-						std::string sMsg = "x-httpd: found mapped filter for resource: " + std::string(it->first) + " -> " + it->second + "\n";
-						XPLMDebugString(sMsg.c_str());
-					
-						std::string sPluginID = it->second;
-						
-						XPLMPluginID target = XPLMFindPluginBySignature( sPluginID.c_str() ); //const char *         inSignature);
-					
-						if( target != XPLM_NO_PLUGIN_ID ){
-							//we located the desired plugin, lets send it a message.
-							long SEND_BLOB = 0x0100b10b;
-							XPLMDebugString("x-httpd: sending ixplc blob..\n");
-							
-							//we need to wrap the input buffer in a very small header to make it blob safe.
-							int packet_size = strlen(inbuf);;
-							sprintf( caDbg, "  blob size: %i (%li)\n", packet_size, bytes_read);
-							XPLMDebugString(caDbg);
-							
-							char* new_packet = (char*)malloc( packet_size+4 );
-								memset( new_packet, 0, packet_size+4 );
-								
-								memcpy( new_packet, &packet_size, 4 );
-								memcpy( new_packet+4, inbuf, packet_size );
-							
-								XPLMSendMessageToPlugin( target, SEND_BLOB, (void*)new_packet );
-							
-							XPLMDebugString("  erasing packet memory.\n");
-							memset( new_packet, 0, packet_size+4 );
-							free( new_packet );
-							
-							//data for this exchange will be returned inside the function: XPluginReceiveMessage
-							//IF we rx an immediate response from the target plugin then the code below can run immediately.
+	std::string sMsg = "x-httpd: found mapped filter for resource: " + std::string(it->first) + " -> " + it->second + "\n";
+	XPLMDebugString(sMsg.c_str());
 
-						}
-						
-						
-						//if we did not rx a reply from the filter plugin a 500 error will be written.
-						
-						//Code currently expects synchronous response.
-						
-							//Use a custom socket write handler for ixplc packets.
-								//we have processed the request and gathered some kind of HTTP response.
-								//time to write it to the client.
-									sockOut = fdopen( c, "wb" );
+	std::string sPluginID = it->second;
+	
+	XPLMPluginID target = XPLMFindPluginBySignature( sPluginID.c_str() ); //const char *         inSignature);
 
-										fwrite( hack_blob, strlen(hack_blob), 1, sockOut );
+	if( target != XPLM_NO_PLUGIN_ID ){
+		//we located the desired plugin, lets send it a message.
+		long SEND_BLOB = 0x0100b10b;
+		XPLMDebugString("x-httpd: sending ixplc blob..\n");
+		
+		//we need to wrap the input buffer in a very small header to make it blob safe.
+		int packet_size = strlen(inbuf);;
+		sprintf( caDbg, "  blob size: %i (%li)\n", packet_size, bytes_read);
+		XPLMDebugString(caDbg);
+		
+		char* new_packet = (char*)malloc( packet_size+4 );
+			memset( new_packet, 0, packet_size+4 );
+			
+			memcpy( new_packet, &packet_size, 4 );
+			memcpy( new_packet+4, inbuf, packet_size );
+		
+			XPLMSendMessageToPlugin( target, SEND_BLOB, (void*)new_packet );
+		
+		XPLMDebugString("  erasing packet memory.\n");
+		memset( new_packet, 0, packet_size+4 );
+		free( new_packet );
+		
+		//data for this exchange will be returned inside the function: XPluginReceiveMessage
+		//IF we rx an immediate response from the target plugin then the code below can run immediately.
 
-										fflush( sockOut );
+	}
+	
+	
+	//if we did not rx a reply from the filter plugin a 500 error will be written.
+	
+	//Code currently expects synchronous response.
+	
+		//Use a custom socket write handler for ixplc packets.
+			//we have processed the request and gathered some kind of HTTP response.
+			//time to write it to the client.
+				sockOut = fdopen( c, "wb" );
 
-									fclose( sockOut );
+					fwrite( hack_blob, strlen(hack_blob), 1, sockOut );
 
-								close( c );
-								
-								
-								//erase the xfer blob and re-write it with a 500 server error.
-								//if the IPC code fails because a plugin does not answer (disabled/unloaded/etc)
-								//the server will return a 500 server error packet for the requested item
-								memset( hack_blob, 0, 8192 );
-								sprintf( hack_blob, "HTTP/1.0 500 OK\r\n\r\n500: ixplc failed: timeout." );
+					fflush( sockOut );
 
-						
-						
-						
-						return;
-						#endif
+				fclose( sockOut );
+
+			close( c );
+			
+			
+			//erase the xfer blob and re-write it with a 500 server error.
+			//if the IPC code fails because a plugin does not answer (disabled/unloaded/etc)
+			//the server will return a 500 server error packet for the requested item
+			memset( hack_blob, 0, 8192 );
+			sprintf( hack_blob, "HTTP/1.0 500 OK\r\n\r\n500: ixplc failed: timeout." );
+
+	
+	
+	
+	return;
+	#endif
 
 }
 
