@@ -25,6 +25,8 @@ x_httpd_response::x_httpd_response(){
 	this->mapMimeTypes[".bin"] = "application/octet-stream";
 
 
+	this->WriteBlock = false;
+
 
 	this->setResponse("HTTP/1.0 200 OK");
 	this->setContentBody("");
@@ -84,6 +86,20 @@ Content-Length: 174
 
 
 
+void x_httpd_response::serverError( const char *reason, const char *message ){
+
+	this->setResponse("HTTP/1.0 500 Server Error");
+	
+	std::string payload = "<b>500 Server Error: " + std::string(reason) + "</b><br>" + std::string(message);
+	
+	this->setContentBody( payload.c_str() );
+	
+	this->write();
+
+}
+
+
+
 void x_httpd_response::accessDenied( const char *reason, const char *message ){
 
 
@@ -131,6 +147,21 @@ Write our content to the client socket.
 */
 void x_httpd_response::write(){
 
+	if( this->WriteBlock ){
+		
+		printf("Error: WriteBlock triggered.\n");
+		
+		std::string sErrorMsg = this->sResponseType + "\n" + this->sBody + "\n";
+		
+		printf( "%s", sErrorMsg.c_str() );
+	
+		return;
+	}
+
+	this->WriteBlock = true;
+	
+	
+	
 
 		char tmp[1024]; //used for numeric converion to C-string, etc.
 		

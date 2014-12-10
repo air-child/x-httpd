@@ -45,6 +45,9 @@ class x_httpd_response{
 		
 		
 		std::string sWebRoot; //root folder of static web content
+		
+		
+		bool WriteBlock;
 
 		
 	public:
@@ -66,6 +69,9 @@ class x_httpd_response{
 		
 		//write a 404
 		void fileNotFound( const char* reason, const char* message );
+		
+		//write a 500 server error
+		void serverError( const char* reason, const char* message );
 		
 		//write whatever is in the response buffers
 		void write();

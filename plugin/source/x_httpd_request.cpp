@@ -195,7 +195,11 @@ void x_httpd_request::parseRequest(){
 			// "/index.htm" or possibly "/../password.txt"
 			
 		}else{
-			this->response.accessDenied( "bad request", "server could not decode request." );
+			//this->response.accessDenied( "bad request", "server could not decode request." );
+			
+			this->response.serverError("Request Decode Failed","Could not decode the requested URI.");
+			return;
+			
 		}
 
 
