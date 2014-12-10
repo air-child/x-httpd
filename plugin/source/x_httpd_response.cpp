@@ -65,23 +65,6 @@ void x_httpd_response::redirect( const char *target ){
 	
 	this->write();
 
-/*
-HTTP/1.1 301 Moved Permanently
-Location: http://www.example.org/
-Content-Type: text/html
-Content-Length: 174
- 
-<html>
-<head>
-<title>Moved</title>
-</head>
-<body>
-<h1>Moved</h1>
-<p>This page has moved to <a href="http://www.example.org/">http://www.example.org/</a>.</p>
-</body>
-</html>
-*/
-
 } //redirect(...)
 
 
@@ -105,28 +88,17 @@ void x_httpd_response::accessDenied( const char *reason, const char *message ){
 
 	this->setResponse("HTTP/1.0 401 Access Denied");
 	
+	//FIXME: apply this if we are in login-required mode.
+	//this->setHeader( "WWW-Authenticate", "Basic realm=\"X-Plane\"\n" );
+	
+	
 	std::string sFailureMessage = "<b>Access Denied:" + std::string(reason) + "</b><br>" + std::string(message) + "<br>";
 	
 	this->setContentBody( sFailureMessage.c_str() );
 
 	this->write();
 
-/*
-	sprintf( header, "%s", 	
-						"HTTP/1.0 401 Access Denied\n" 
-						"Server: " X_HTTPD_VERSION_STRING "\n"
-						"WWW-Authenticate: Basic realm=\"X-Plane\"\n"
-						"Content-type: text/html\n"
-						//"\n"
-			);
-			
-	this->header401Deny( header );
-	sprintf( html, "%s", "Access Denied" );
-	
-	return strlen( html );
-
-*/
-}
+} //accessDenied
 
 
 
@@ -148,11 +120,9 @@ Write our content to the client socket.
 void x_httpd_response::write(){
 
 	if( this->WriteBlock ){
-		
 		printf("Error: WriteBlock triggered.\n");
-		
+
 		std::string sErrorMsg = this->sResponseType + "\n" + this->sBody + "\n";
-		
 		printf( "%s", sErrorMsg.c_str() );
 	
 		return;
@@ -160,43 +130,47 @@ void x_httpd_response::write(){
 
 	this->WriteBlock = true;
 	
-	
-	
 
 		char tmp[1024]; //used for numeric converion to C-string, etc.
 		
-
+		this->setHeader("Server", "x-httpd v14.12.11 alpha CLI mode.");
+		
+		//calculate body size based on payload contents at write time.
+		sprintf(tmp, "%li", this->sBody.size() );
+		this->setHeader("Content-Length", tmp );
+		
+		
+		//construct our output blob from response + headers + content
 		std::string sOutputBlob = "";
 		sOutputBlob += this->sResponseType + "\n";
+		
 		
 		//iterate over headers and build string blob..		
 		std::map<std::string, std::string>::iterator it;// = mapResourceMap.find( requestString );
 		for( it=this->map_Headers.begin(); it != this->map_Headers.end(); ++it ){
-		
 			sOutputBlob += it->first + ": " + it->second + "\n";
 		
-		}
-		
-		
-		sprintf(tmp, "Content-Length: %li", this->sBody.size() );
-		sOutputBlob += std::string( tmp ) + "\n";
-		
-		printf( "%s\n", tmp );
-		
+		}//loop headers
 		
 		//blank line to mark the end of our header section
 		sOutputBlob += "\n";
+		
 		
 		//main payload
 		sOutputBlob += this->sBody;
 
 
+
+		//response construction is complete, write to socket.
+
+		#if 0
 		printf("---response blob---\n%s\n----end response blob----\n\n", sOutputBlob.c_str() );
+		#endif
+		
+		//write our blob to the socket.
 		fwrite( sOutputBlob.c_str(), sOutputBlob.size(), 1, this->sockOut );
 
-
 		fflush( sockOut );
-
 
 } //write
 
@@ -205,7 +179,6 @@ void x_httpd_response::write(){
 
 void x_httpd_response::sendFile( const char *filename ){
 
-	char caDbg[2048];
 
 		//convert function param to std::string
 		std::string sFilename = std::string( filename );
@@ -248,9 +221,10 @@ void x_httpd_response::sendFile( const char *filename ){
 		//convert filename to useful content path local to our content folders.
 		std::string sTmpFilename = std::string("html") + sFilename;
 		
+		
+		
 		//report for debug
-		sprintf( caDbg, "Serving file:(%s)\n", sTmpFilename.c_str() ); 
-		printf( "%s", caDbg );
+		printf( "Serving file:(%s)\n", sTmpFilename.c_str() );
 		
 		
 		
@@ -290,7 +264,7 @@ void x_httpd_response::sendFile( const char *filename ){
 					this->write();
 					
 				}else{
-					printf("* file not found.\n");
+					printf("* File not found.\n");
 					this->fileNotFound("404 File Not Found", "The requested file was not found on disk.");
 				}
 				
@@ -299,6 +273,7 @@ void x_httpd_response::sendFile( const char *filename ){
 		
 		}else{
 		
+			printf("* File is zero bytes.\n");
 			this->fileNotFound("File is zero bytes.", "The requested file is zero bytes.");
 		
 		}//else: 404
@@ -310,48 +285,6 @@ void x_httpd_response::sendFile( const char *filename ){
 
 
 
-
-void x_httpd_response::header200OK_MIME( char *header, const char* mime_string ){
-	sprintf( header, 
-						"HTTP/1.0 200 OK\n"	
-						"Server: " X_HTTPD_VERSION_STRING "\n"
-						"Content-type: %s\n",
-						
-						mime_string
-			);
-}
-
-
-
-
-
-
-int x_httpd_response::htmlSendBinary( char *header, char *html, unsigned char *buffer, int size, char *fileType ){
-
-/*
-	//TODO: upgrade to use iterator.
-	std::string sMimeTypeKey = std::string( fileType );
-	
-	typedef std::map<std::string, std::string> MapType;
-	MapType::iterator iter;
-		
-	iter = mapMimeTypes.find( sMimeTypeKey );
-	
-	if( iter != mapMimeTypes.end() ){
-		this->header200OK_MIME( header, iter->second.c_str() );
-	}else{
-		this->header200OK_MIME( header, "application/octet-stream" );
-	}
-	
-		memset( html, 0, size );
-		memcpy( html, buffer, size );
-
-	return size;
-
-*/
-
-	return 0;
-}
 
 
 

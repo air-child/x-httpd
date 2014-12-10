@@ -27,27 +27,27 @@
 class x_httpd_response{
 	private:
 		
-		std::map<std::string, std::string> mapMimeTypes;
+		std::map<std::string, std::string> mapMimeTypes; //map of common mime types. key: .extension value: text/plain
 
 
 		std::string sResponseType; //HTTP/1.0 200 OK, etc.
 		std::string sContentType; //map into a header item???
 		
-		std::map<std::string, std::string> map_Headers;
+		std::map<std::string, std::string> map_Headers; //map of headers that we will write to the client.
 		
-		std::string sBody;
+		std::string sBody; //the bytes that the client will treat as content
 
 		
 
 		FILE* sockOut; //FILE* socket output
 		
-		int bLogDebugToConsole;
+		int bLogDebugToConsole; //mostly ignored.
 		
 		
 		std::string sWebRoot; //root folder of static web content
 		
 		
-		bool WriteBlock;
+		bool WriteBlock; //block double writes to a socket
 
 		
 	public:
@@ -59,8 +59,9 @@ class x_httpd_response{
 		
 		void setWebRoot( const char* webRoot );
 		
-		//high level control of output
 		
+		
+		//high level control of output		
 		//redirect to another URI
 		void redirect( const char* target );
 		
@@ -73,21 +74,13 @@ class x_httpd_response{
 		//write a 500 server error
 		void serverError( const char* reason, const char* message );
 		
-		//write whatever is in the response buffers
-		void write();
 		
-		
+		//does auto detect of mime type based on file extension
+		//sets response type, headers, body, and calls write, self contained.
 		void sendFile( const char* filename );
 		
 		
 		
-		//mid level control of output, general utils.
-		void header200OK_MIME( char *header, const char* mime_string );
-		
-		int htmlGeneric( char *header, char *html, char *payload );
-		int htmlSendBinary( char *header, char *html, unsigned char *buffer, int size, char *fileType );
-
-
 
 		//low level control of output.
 		void setResponse( const char *response ); //eg: HTTP/1.0 200 OK\n
@@ -98,13 +91,19 @@ class x_httpd_response{
 		
 		void setContentLength( size_t byte_count ); //eg: 12345
 		
-		void setContentBody( const char* content_body, size_t byte_count ); //eg: {"foo":123.45} - supports binary
+
 		void setContentBody( const char* content_body ); //eg: {"foo":123.45} -- assumes C string
+		void setContentBody( const char* content_body, size_t byte_count ); //eg: {"foo":123.45} - supports binary
+		
+		
+		//write whatever is in the response buffers
+		void write();
 		
 		
 
 
 		//X-Plane specific content handlers...
+		#if 0
 		//FIXME: refactor
 			//dataref access
 			int htmlUniSet( char *header, char *html );
@@ -113,7 +112,7 @@ class x_httpd_response{
 			//summarised state data
 			int htmlMiscStateXML( char *header, char *html, char *queryString );
 			int htmlStateXML( char *header, char *html );
-
+		#endif
 
 };
 
