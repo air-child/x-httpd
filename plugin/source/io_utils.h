@@ -21,11 +21,6 @@
 //server IO utility functions.
 extern size_t getFileSize( const char *filename, char* error_message );
 
-extern void cacheFile_Text( char *rootFolder, char *filename, unsigned char **buffer );
-extern void cacheFile_Bin( char *rootFolder, char *filename, unsigned char **buffer, int *iSize );
-extern void prepareFileCache();
-extern void cleanupFileCache();
-
 
 		//x-plane functions for the XPL to worry about..
 extern void findPluginFolder(char *buffer);

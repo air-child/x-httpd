@@ -21,18 +21,6 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 
 
 
-
-
-//#define BUFSIZE 65536
-#define BUFSIZE 4194304 //4 megs max
-
-//too many defines 'cause once we had a read buffer and write buffer of differing sizes.
-#define BUFFER_PAGE_SIZE BUFSIZE
-#define INBUF_SIZE BUFSIZE
-
-
-
-
 #include "common_includes.h"
 
 
