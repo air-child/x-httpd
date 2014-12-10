@@ -338,11 +338,11 @@ void x_httpd_request::readClientRequest(){
 			
 		}while( chunk_size > 0 );
 		
-		const double max_time_allowed = 50; //android clients are incredibly SLOW.
+		const double max_time_allowed = 500; //android clients are incredibly SLOW.
 		
 		if( (this->hpt.getElapsedTimeInMilliSec() - hptStart) >= max_time_allowed ){
 			printf("!!! client->read() abort: time limit exceeded.\n");
-			this->response.serverError("time limit exceeded", "Your browser is too slow.");
+			this->response.serverError("Request time out.", "Your browser is too slow.");
 			break;
 		}
 		
