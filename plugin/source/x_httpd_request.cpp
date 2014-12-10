@@ -338,8 +338,9 @@ void x_httpd_request::readClientRequest(){
 			
 		}while( chunk_size > 0 );
 		
+		const double max_time_allowed = 50; //android clients are incredibly SLOW.
 		
-		if( (this->hpt.getElapsedTimeInMilliSec() - hptStart) >= 1 ){
+		if( (this->hpt.getElapsedTimeInMilliSec() - hptStart) >= max_time_allowed ){
 			printf("!!! client->read() abort: time limit exceeded.\n");
 			this->response.serverError("time limit exceeded", "Your browser is too slow.");
 			break;
@@ -349,6 +350,8 @@ void x_httpd_request::readClientRequest(){
 	//add a test to see how long we've been in this loop, we cant stay forever!
 	}while( bytes_read == 0 );
 	
+	
+	printf("read op took: %0.3f ms", (this->hpt.getElapsedTimeInMilliSec() - hptStart) );
 	
 
 	//DO NOT close socket or socket read/write FILE* handles until we're completely finished with request.
