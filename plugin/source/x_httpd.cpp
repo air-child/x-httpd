@@ -63,14 +63,18 @@ void x_httpd::setRootFolder( const char* target_folder ){
 */
 
 
-void x_httpd::run(){
+void x_httpd::run_cli(){
 
 	for(;;){
 	
 		this->run_slice( 10 );
 		
-		//we should probably usleep or something
-		usleep( 100 );
+		//If we do NOT usleep then the network stack seems unable to feed us a large enough packet of data to read and parse as a valid request.
+		
+		//100 yeilds occasional parser errors, especially with FireFox.
+		//usleep( 100 );
+		
+		usleep( 500 );
 	
 	}
 }

@@ -25,7 +25,7 @@ int main(int argc, const char * argv[])
 	x_httpd *httpd = new x_httpd( 1312 );
 	
 	std::cout << "  running..\n";
-	httpd->run();
+	httpd->run_cli();
 	
 	
 	std::cout << "finished.\n";

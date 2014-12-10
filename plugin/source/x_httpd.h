@@ -50,7 +50,7 @@ class x_httpd{
 		x_httpd( int port );
 		~x_httpd();
 
-		void run(); //endless loop, run forever, CLI.
+		void run_cli(); //endless loop, run forever, CLI.
 		void run_slice( int max_time_usec ); //run a small slice of work
 		
 		void initSockets();
