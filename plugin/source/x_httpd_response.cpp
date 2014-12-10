@@ -16,14 +16,14 @@
 x_httpd_response::x_httpd_response(){
 
 	this->mapMimeTypes[".htm"] = "text/html";
-	this->mapMimeTypes[".js"] = "text/plain"; //FIXME
+	this->mapMimeTypes[".js"] = "application/javascript";
+	this->mapMimeTypes[".json"] = "application/json";
 	this->mapMimeTypes[".txt"] = "text/plain";
 	this->mapMimeTypes[".css"] = "test/css";
 	this->mapMimeTypes[".xml"] = "application/xml";
 	this->mapMimeTypes[".png"] = "image/png";
 	this->mapMimeTypes[".ico"] = "image/x-icon";
 	this->mapMimeTypes[".swf"] = "application/x-shockwave-flash";
-
 	this->mapMimeTypes[".bin"] = "application/octet-stream";
 
 
@@ -31,8 +31,8 @@ x_httpd_response::x_httpd_response(){
 	
 
 	this->setResponse(XHTTPD_HTTP_VERSION " 200 OK");
-	this->setContentType("text/plain");
-	this->setContentBody("");
+	this->setContentType("text/html");
+	this->setContentBody("error: default request data!");
 
 
 }
@@ -62,7 +62,6 @@ void x_httpd_response::redirect( const char *target ){
 	this->setResponse(XHTTPD_HTTP_VERSION " 301 Moved Permanently");
 	this->setHeader("Location", target);
 	this->setContentType("text/plain");
-	
 	std::string sContentBody = std::string("Moved: ") + target;	
 	this->setContentBody( sContentBody.c_str() );
 	
@@ -75,11 +74,8 @@ void x_httpd_response::redirect( const char *target ){
 void x_httpd_response::serverError( const char *reason, const char *message ){
 
 	this->setResponse(XHTTPD_HTTP_VERSION " 500 Server Error");
-	
 	std::string payload = "<b>500 Server Error: " + std::string(reason) + "</b><br>" + std::string(message);
-	
 	this->setContentBody( payload.c_str() );
-	
 	this->write();
 
 }
@@ -88,17 +84,10 @@ void x_httpd_response::serverError( const char *reason, const char *message ){
 
 void x_httpd_response::accessDenied( const char *reason, const char *message ){
 
-
 	this->setResponse(XHTTPD_HTTP_VERSION " 401 Access Denied");
-	
-
-	this->setHeader( "WWW-Authenticate", "Basic realm=\"X-Plane\"\n" );
-	
-	
+	this->setHeader( "WWW-Authenticate", "Basic realm=\"X-Plane\"" );
 	std::string sFailureMessage = "<b>Access Denied:" + std::string(reason) + "</b><br>" + std::string(message) + "<br>";
-	
 	this->setContentBody( sFailureMessage.c_str() );
-
 	this->write();
 
 } //accessDenied
@@ -109,7 +98,7 @@ void x_httpd_response::fileNotFound( const char *reason, const char *message ){
 
 	this->setResponse( XHTTPD_HTTP_VERSION " 404 Not Found" );
 	this->setContentType("text/html");
-	this->setContentBody( std::string(std::string(reason) + "<br>" + std::string(message) ).c_str() );
+	this->setContentBody( std::string( "<b>" + std::string(reason) + "</b><br>" + std::string(message) ).c_str() );
 	this->write();
 
 } //fileNotFound
@@ -158,7 +147,9 @@ void x_httpd_response::write(){
 		//iterate over headers and build string blob..		
 		std::map<std::string, std::string>::iterator it;// = mapResourceMap.find( requestString );
 		for( it=this->map_Headers.begin(); it != this->map_Headers.end(); ++it ){
-			sOutputBlob += it->first + ": " + it->second + "\n";
+			if( it->first != "" ){
+				sOutputBlob += it->first + ": " + it->second + "\n";
+			}
 		
 		}//loop headers
 		
@@ -173,7 +164,7 @@ void x_httpd_response::write(){
 
 		//response construction is complete, write to socket.
 
-		#if 0
+		#if 1
 		printf("---response blob---\n%s\n----end response blob----\n\n", sOutputBlob.c_str() );
 		#endif
 		
@@ -202,7 +193,7 @@ void x_httpd_response::sendFile( const char *filename ){
 		
 			//we were able to locate a filetype .extension
 			sFileType = sFilename.substr( ext_pos );
-			printf( "File extension: %s\n", sFileType.c_str() );
+			//printf( "File extension: %s\n", sFileType.c_str() );
 			
 			//Modify our response headers based on the .extension
 			std::map<std::string, std::string>::iterator it;
@@ -219,7 +210,7 @@ void x_httpd_response::sendFile( const char *filename ){
 			
 				//debug assist:
 				//this will fail with exotic binary types but is good for debugging.
-				this->setContentType("text/plain");
+				//this->setContentType("text/plain");
 				
 			}//end detect-mime-type header
 			
@@ -232,21 +223,15 @@ void x_httpd_response::sendFile( const char *filename ){
 		std::string sTmpFilename = std::string("html") + sFilename;
 		
 		
-		
-		//report for debug
-		printf( "Serving file:(%s)\n", sTmpFilename.c_str() );
-		
-		
-		
 		//Check requested filename for ".." parent dir strings
 		if( sTmpFilename.find("..") != std::string::npos ){
 			
+			printf("Access denied. Illegal path.\n");
 			//this is an illegal request attempting to mess with file path data
 			this->accessDenied("Illegal path.", "Client requested illegal resource path.");
 			return;
 			
-		} 
-		
+		}
 		
 		
 		//full path to file on disk
@@ -258,9 +243,7 @@ void x_httpd_response::sendFile( const char *filename ){
 		size_t fileSize = getFileSize( sFullPath.c_str(), err_msg );
 		if( fileSize ){
 		
-			printf("* reading file for response..\n");
-			printf("(%s)\n", sFullPath.c_str() );
-			
+			printf("read: (%s)\n", sFullPath.c_str() );
 			
 			char *buffer = (char*)calloc( fileSize, 1 );
 		
@@ -282,7 +265,8 @@ void x_httpd_response::sendFile( const char *filename ){
 		
 		
 		}else{
-		
+			
+			//this probably should NOT throw an error. zero byte files are legal.
 			printf("* File is zero bytes.\n");
 			this->fileNotFound("File is zero bytes.", "The requested file is zero bytes.");
 		
