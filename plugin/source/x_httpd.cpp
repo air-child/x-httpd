@@ -91,14 +91,7 @@ void x_httpd::run_slice( int time_usec ){
 	//loop over more work
 	
 
-
-
-
-
 		char caDbg[1024];
-		
-
-
 
 			static int socketsInit = 0;
 			if( ! socketsInit ){
@@ -159,12 +152,13 @@ void x_httpd::run_slice( int time_usec ){
 							
 						break;
 					default:
+						printf("\n");
 						printf("accept()ed a connect: %i\n", c);
 						
-						char remoteAddress[32];
+							char remoteAddress[32];
 							strcpy( remoteAddress, inet_ntoa(from.sin_addr) );
 							
-							sprintf( caDbg, "\nx-httpd: request from: %s\n", remoteAddress );
+							sprintf( caDbg, "x-httpd: request from: %s\n", remoteAddress );
 							printf( "%s", caDbg );
 							//XPLMDebugString(caDbg);
 							
