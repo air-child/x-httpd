@@ -258,33 +258,20 @@ x_httpd_request::x_httpd_request( int sock_client, std::string sAuthTokenB64 ){
 	this->bRequirePassword = 0;
 	this->sAuthTokenB64 = sAuthTokenB64;
 
-
 	this->bLogDebugToConsole = 1;
-
-
-	//legacy code...
-	this->queryStringVCount = 0;
-
-
-	this->mapMimeTypes[".htm"] = "text/html";
-	this->mapMimeTypes[".js"] = "application/javascript";
-	this->mapMimeTypes[".json"] = "application/json";
-	this->mapMimeTypes[".txt"] = "text/plain";
-	this->mapMimeTypes[".css"] = "test/css";
-	this->mapMimeTypes[".xml"] = "application/xml";
-	this->mapMimeTypes[".png"] = "image/png";
-	this->mapMimeTypes[".jpg"] = "image/jpeg";
-	this->mapMimeTypes[".gif"] = "image/gif";
-	this->mapMimeTypes[".ico"] = "image/x-icon";
-	this->mapMimeTypes[".swf"] = "application/x-shockwave-flash";
-	this->mapMimeTypes[".bin"] = "application/octet-stream";
-
 	
 	//setup socket and FILE* for read/write of socket
 	this->sock_client = sock_client;
 	this->sockIn = fdopen( this->sock_client, "rb" );
 	this->sockOut = fdopen( this->sock_client, "wb" );
 	this->response.setSocket( this->sockOut );
+
+
+
+	//legacy code...
+	this->queryStringVCount = 0;
+
+
 
 }
 

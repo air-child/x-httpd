@@ -38,37 +38,31 @@ class x_httpd_request{
 		std::map<std::string, std::string> map_Headers;
 		
 		std::string sBody; //body of request, form data, etc.
-		
-		
+
 
 		std::string authorizationToken; //extracted from http request
 		std::string sAuthTokenB64; //provided by parent
 
-		
+
 		x_httpd_response response;
 		
 
 		int bLogDebugToConsole;
 		int bRequirePassword;
-		
-
 
 		std::map<std::string, std::string> mapResourceMap; //map: uri -> plugin_id
 
+		std::string sWebRoot; //folder path
 		
-
+		
+		
 		//crude lookup table for query string values after 1st stage parsing.
 		//FIXME: replace with vector or map
 		char *queryStringV[1024]; 
 		int queryStringVCount;
 
 		
-		std::string sWebRoot; //folder path
 		
-		
-		//mapping from filetype -> mime string
-		std::map<std::string, std::string> mapMimeTypes;
-
 	
 	public:
 		x_httpd_request( int sock_client, std::string sAuthTokenB64 );
