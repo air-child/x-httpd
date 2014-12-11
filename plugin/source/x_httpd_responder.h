@@ -15,7 +15,9 @@
 #include <string>
 #include <vector>
 
-
+#if XPLM200
+#include "common_sdk.h"
+#endif
 
 #include "x_httpd_request.h"
 #include "x_httpd_response.h"

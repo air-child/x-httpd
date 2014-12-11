@@ -33,14 +33,15 @@ void x_httpd_responder__cmd_handler::eat( x_httpd_request *request ){
 	
 	
 	std::string payload = "response__cmd_handler.eat: ";
+	std::string sCmdMode = "";
 	
 	size_t max_x = request->requestTokens.size();
 	if( max_x < 4 ){
 		payload = "Invalid cmd call: Not enough tokens.";
 		valid_request = false;
+	}else{
+		sCmdMode = request->requestTokens[2];
 	}
-	
-	std::string sCmdMode = request->requestTokens[2];
 	
 	
 	if( valid_request ){
@@ -65,11 +66,23 @@ void x_httpd_responder__cmd_handler::eat( x_httpd_request *request ){
 		if( "start" == sCmdMode ){			
 			payload = "cmd start: " + sCmdString;
 			
+			#if XPLM200
+				XPLMCommandBegin( XPLMFindCommand( sCmdString.c_str() ) );			
+			#endif
+			
 		}else if( "stop" == sCmdMode ){
 			payload = "cmd stop: " + sCmdString;
+
+			#if XPLM200
+				XPLMCommandEnd( XPLMFindCommand( sCmdString.c_str() ) );			
+			#endif
 			
 		}else if( "once" == sCmdMode ){
 			payload = "cmd once: " + sCmdString;
+
+			#if XPLM200
+				XPLMCommandOnce( XPLMFindCommand( sCmdString.c_str() ) );			
+			#endif
 			
 		}else{
 			payload = "Invalid cmd call: Unknown mode.";
