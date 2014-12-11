@@ -12,12 +12,101 @@
 
 
 void x_httpd_responder__dref_get::eat( x_httpd_request *request ){
+	
+	char caTmp[1024]; //used to convert values into a string
+	
+	printf("response__dref_get.eat()\n");
+	
+	request->response.setContentType("text/plain");
+	
+	
+	bool valid_request = true;
+	
+	
+	std::string payload = "response__dref_get.eat: ";
+	std::string sCmdMode = ""; //define dataref type
+	
+	size_t max_x = request->requestTokens.size();
+	if( max_x < 4 ){
+		payload = "Invalid get call: Not enough tokens.";
+		valid_request = false;
+	}else{
+		sCmdMode = request->requestTokens[2];
+	}
+	
+	
+	if( valid_request ){
+		//reconstruct the command string
+		//skip first three tokens (<blank>/cmd/mode/sim/operation/foo)
+		std::string sCmdString = "";
+		for( size_t x=3; x < max_x; x++ ){			
+			sCmdString += request->requestTokens[x];
+			if( x < max_x-1 ){
+				sCmdString += "/";
+			}
+		}
+		
+		//we now have a reconstructed command string
+		#if XPLM200
+			printf("XPL mode\n");
+		#else
+			printf("CLI mode\n");
+		#endif
+		
+		//exec according to mode.
+		if( "float" == sCmdMode ){			
+			payload = "get float: " + sCmdString;
+			
+			#if XPLM200
+				float tmpVal = XPLMGetDataf( XPLMFindDataRef( sCmdString.c_str() ) );
+				sprintf( caTmp, "%f", tmpVal );
+				payload += std::string( caTmp );				
+			#endif
+			
+		}else if( "int" == sCmdMode ){
+			payload = "get int: " + sCmdString;
+
+			#if XPLM200
+				int tmpVal = XPLMGetDatai( XPLMFindDataRef( sCmdString.c_str() ) );
+				sprintf( caTmp, "%i", tmpVal );
+				payload += std::string( caTmp );				
+			#endif
+			
+		}else if( "double" == sCmdMode ){
+			payload = "get double: " + sCmdString;
+
+			#if XPLM200
+				double tmpVal = XPLMGetDatad( XPLMFindDataRef( sCmdString.c_str() ) );
+				sprintf( caTmp, "%f", tmpVal );
+				payload += std::string( caTmp );				
+			#endif
+			
+		}else{
+			payload = "Invalid get call: Unknown mode: " + sCmdMode;
+			valid_request = false;
+		}
+
+		
+		
+	}else{
+		//request has been deemed invalid
+	
+		//no actions taken.
+	}
+	
+	request->response.setContentBody( payload.c_str() );
+	request->response.write();
 
 }
+
 
 void x_httpd_responder__dref_set::eat( x_httpd_request *request ){
 
 }
+
+
+
+
 
 
 
@@ -85,7 +174,7 @@ void x_httpd_responder__cmd_handler::eat( x_httpd_request *request ){
 			#endif
 			
 		}else{
-			payload = "Invalid cmd call: Unknown mode.";
+			payload = "Invalid cmd call: Unknown mode: " + sCmdMode;
 			valid_request = false;
 		}
 
