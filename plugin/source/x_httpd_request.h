@@ -15,6 +15,9 @@
 #include <string>
 #include <vector>
 
+#include <sstream>
+
+
 #include "common_includes.h"
 
 #include "x_httpd_response.h"
@@ -36,10 +39,14 @@ class x_httpd_request{
 		
 
 		//GET /request/string?query=string HTTP/1.0
+		//moving to public declaration so responder objects can access easily.
+		/*
 		std::string requestMode;
 		std::string requestString;	
+		std::vector<std::string> requestTokens;
 		std::string queryString;	
 		std::string httpVersion;
+		*/
 		
 		std::map<std::string, std::string> map_Headers;
 		
@@ -78,6 +85,12 @@ class x_httpd_request{
 		
 		x_httpd_response response; //need public access in x_httpd_responder classes
 
+		std::string requestMode;
+		std::string requestString;	
+		std::vector<std::string> requestTokens;
+		std::string queryString;	
+		std::string httpVersion;
+		
 		
 		void setWebRoot( const char* folder );
 		

@@ -279,23 +279,13 @@ x_httpd_request::x_httpd_request( int sock_client, std::string sAuthTokenB64 ){
 
 	this->hpt.start();
 	
-	this->map_Responders["/get/"] = new x_httpd_responder__dref_get();  //std::string("Dataref getter."); //get/sim/system/leaf
-	this->map_Responders["/set/"] = new x_httpd_responder__dref_set(); //std::string("Dataref setter."); //set/sim/system/leaf/value
 	
-	this->map_Responders["/cmd/"] = new x_httpd_responder__cmd_handler(); //std::string("Command API."); // /cmd/start/foo || /cmd/stop/foo || /cmd/once/foo
+	//setup our map of responders with their URL triggers.
+	this->map_Responders["get"] = new x_httpd_responder__dref_get(); //get/sim/system/leaf
+	this->map_Responders["set"] = new x_httpd_responder__dref_set(); //set/sim/system/leaf/value
 	
-
-
-	/*
-	this->map_Responders["/sit/"] = std::string("Situation Loader."); // /sit/load/filename.sit
+	this->map_Responders["cmd"] = new x_httpd_responder__cmd_handler(); //std::string("Command API."); // /cmd/start/foo || /cmd/stop/foo || /cmd/once/foo
 	
-	this->map_Responders["/pause/"] = std::string("X-Plane Pause toggle."); // /pause/1 || /pause/0
-	
-	this->map_Responders["/quit"] = std::string("X-Plane remote quit."); //no option
-
-	this->map_Responders["/echo"] = std::string("Request echo. Debug browser packets."); //no option
-	*/
-
 }
 
 
@@ -432,18 +422,30 @@ void x_httpd_request::processRequest(){
 		){
 		
 		
-			//FIXME: split into tokens
-
+			//split into tokens			
+			//The first token will be blank!
+			std::stringstream ss( this->requestString );
+			std::string item;
+			while( std::getline(ss, item, '/') ){
+				this->requestTokens.push_back(item);
+			}
+			printf( "Request String contains %li tokens\n", this->requestTokens.size() );
+			
+			//99% of content decisions can be made using the first token in the vector.
+			std::string sFirstToken = this->requestTokens[1];
+			
 		
-				if( "/about" == this->requestString ){
+				if( "about" == sFirstToken ){
 					
 					this->response.setContentType( "text/html" );
 					this->response.setContentBody( XHTTPD_SERVER_MESSAGE "<br>built: " __DATE__ __TIME__ );
 					this->response.write();
 
-				}else if( "/redirect_test" == this->requestString ){
+
+				}else if( "redirect" == sFirstToken ){
 				
 					this->response.redirect("http://lmgtfy.com/?q=rtfm");
+
 
 				}else{
 					
@@ -453,21 +455,15 @@ void x_httpd_request::processRequest(){
 					
 
 					//check to see if another plugin has registered to handle this resource..
-					std::map<std::string, void*>::iterator it = map_Responders.find( requestString );
+					std::map<std::string, void*>::iterator it = map_Responders.find( sFirstToken );
 					if( it != map_Responders.end() ){
 						
 						//We have located a module that wants to handle the request.
 						//Pass off to the X-Plane IPC handler code.
 						//this->processRequest_IPC();
 						
-						/*
-						this->response.setContentType("text/plain");
-						this->response.setContentBody( "Responder Map WIP" );
-						this->response.write();
-						*/
-						
 						x_httpd_responder *tmpResponder = (x_httpd_responder*)it->second;						
-						tmpResponder->write( this ); //we only need to pass in the request object as it already contains a reference to the responder object
+						tmpResponder->eat( this ); //we only need to pass in the request object as it already contains a reference to the responder object
 						
 						
 						
