@@ -432,7 +432,11 @@ void x_httpd_request::processRequest(){
 			printf( "Request String contains %li tokens\n", this->requestTokens.size() );
 			
 			//99% of content decisions can be made using the first token in the vector.
-			std::string sFirstToken = this->requestTokens[1];
+			std::string sFirstToken = ""; //default to blank value.
+			if( this->requestTokens.size() > 1 ){
+				//if the client requests the root resource ("/") then we will have a token count of 1 and item [1] will throw an exception.
+				sFirstToken = this->requestTokens[1];
+			}
 			
 		
 				if( "about" == sFirstToken ){
