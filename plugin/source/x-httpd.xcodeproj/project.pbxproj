@@ -25,6 +25,9 @@
 		2340D54A1A38C2820081BC82 /* Timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2340D5481A38C2820081BC82 /* Timer.cpp */; };
 		2340D54B1A38C2820081BC82 /* Timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2340D5481A38C2820081BC82 /* Timer.cpp */; };
 		2340D54C1A38C2820081BC82 /* Timer.h in Headers */ = {isa = PBXBuildFile; fileRef = 2340D5491A38C2820081BC82 /* Timer.h */; };
+		2340D54F1A39D3A20081BC82 /* x_httpd_responder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2340D54D1A39D3A20081BC82 /* x_httpd_responder.cpp */; };
+		2340D5501A39D3A20081BC82 /* x_httpd_responder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2340D54D1A39D3A20081BC82 /* x_httpd_responder.cpp */; };
+		2340D5511A39D3A20081BC82 /* x_httpd_responder.h in Headers */ = {isa = PBXBuildFile; fileRef = 2340D54E1A39D3A20081BC82 /* x_httpd_responder.h */; };
 		234964F4183B9526001F6498 /* x_httpd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 234964F2183B9526001F6498 /* x_httpd.cpp */; };
 		234964F5183B9526001F6498 /* x_httpd.h in Headers */ = {isa = PBXBuildFile; fileRef = 234964F3183B9526001F6498 /* x_httpd.h */; };
 		234964FE183B99B0001F6498 /* drefs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 234964FC183B99B0001F6498 /* drefs.cpp */; };
@@ -71,6 +74,8 @@
 		2340D53E1A3476FB0081BC82 /* x_httpd_response.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x_httpd_response.h; sourceTree = "<group>"; };
 		2340D5481A38C2820081BC82 /* Timer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Timer.cpp; sourceTree = "<group>"; };
 		2340D5491A38C2820081BC82 /* Timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Timer.h; sourceTree = "<group>"; };
+		2340D54D1A39D3A20081BC82 /* x_httpd_responder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = x_httpd_responder.cpp; sourceTree = "<group>"; };
+		2340D54E1A39D3A20081BC82 /* x_httpd_responder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x_httpd_responder.h; sourceTree = "<group>"; };
 		234964F2183B9526001F6498 /* x_httpd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = x_httpd.cpp; sourceTree = "<group>"; };
 		234964F3183B9526001F6498 /* x_httpd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x_httpd.h; sourceTree = "<group>"; };
 		234964FA183B9644001F6498 /* global_defs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = global_defs.h; sourceTree = "<group>"; };
@@ -165,6 +170,8 @@
 				2340D5391A3476EC0081BC82 /* x_httpd_request.h */,
 				2340D53D1A3476FB0081BC82 /* x_httpd_response.cpp */,
 				2340D53E1A3476FB0081BC82 /* x_httpd_response.h */,
+				2340D54D1A39D3A20081BC82 /* x_httpd_responder.cpp */,
+				2340D54E1A39D3A20081BC82 /* x_httpd_responder.h */,
 			);
 			name = httpd;
 			sourceTree = "<group>";
@@ -236,6 +243,7 @@
 			files = (
 				2340D54C1A38C2820081BC82 /* Timer.h in Headers */,
 				239EF5AC1A32FE1300A0715F /* mime_types.h in Headers */,
+				2340D5511A39D3A20081BC82 /* x_httpd_responder.h in Headers */,
 				8D01CCC80486CAD60068D4B7 /* x-httpd_Prefix.pch in Headers */,
 				2340D53C1A3476EC0081BC82 /* x_httpd_request.h in Headers */,
 				2316C5DB07CE06E400C86874 /* main_xpl.h in Headers */,
@@ -347,6 +355,7 @@
 				2340D5361A344DF50081BC82 /* global_defs.cpp in Sources */,
 				2340D5371A344DF50081BC82 /* mime_types.cpp in Sources */,
 				2340D52E1A34444C0081BC82 /* main_cli.cpp in Sources */,
+				2340D5501A39D3A20081BC82 /* x_httpd_responder.cpp in Sources */,
 				2340D54B1A38C2820081BC82 /* Timer.cpp in Sources */,
 				2340D5401A3476FB0081BC82 /* x_httpd_response.cpp in Sources */,
 				2340D5331A3448310081BC82 /* io_utils.cpp in Sources */,
@@ -364,6 +373,7 @@
 				234964FE183B99B0001F6498 /* drefs.cpp in Sources */,
 				23496502183BB82E001F6498 /* global_defs.cpp in Sources */,
 				23BBB5B8183E6C01001E3038 /* ixplc.cpp in Sources */,
+				2340D54F1A39D3A20081BC82 /* x_httpd_responder.cpp in Sources */,
 				239EF5AB1A32FE1300A0715F /* mime_types.cpp in Sources */,
 				2340D53F1A3476FB0081BC82 /* x_httpd_response.cpp in Sources */,
 				2340D53A1A3476EC0081BC82 /* x_httpd_request.cpp in Sources */,

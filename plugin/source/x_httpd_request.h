@@ -22,6 +22,10 @@
 #include "timer/Timer.h"
 
 
+//including this creates a pre-processor cycle which causes compilation failure.
+//#include "x_httpd_responder.h"
+
+
 class x_httpd_request{
 	private:
 
@@ -46,13 +50,14 @@ class x_httpd_request{
 		std::string sAuthTokenB64; //provided by parent
 
 
-		x_httpd_response response;
 		
 
 		int bLogDebugToConsole;
 		int bRequirePassword;
 
-		std::map<std::string, std::string> mapResourceMap; //map: uri -> plugin_id
+		//we use a void* here because we cant inlucde the file that would give us the typedef or we get a cyclical error
+		//the void* typedef is a placeholder for x_httpd_responder*
+		std::map<std::string, void*> map_Responders; //map: uri -> plugin_id
 
 		std::string sWebRoot; //folder path
 		
@@ -71,6 +76,8 @@ class x_httpd_request{
 		x_httpd_request( int sock_client, std::string sAuthTokenB64 );
 		~x_httpd_request();
 		
+		x_httpd_response response; //need public access in x_httpd_responder classes
+
 		
 		void setWebRoot( const char* folder );
 		

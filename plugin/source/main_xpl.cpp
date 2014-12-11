@@ -667,12 +667,12 @@ PLUGIN_API void XPluginReceiveMessage(
 				
 		}else if( inMessage == REG_URI ){
 
-			//xhttpd_mapResourceMap["/gizmo"] = "gizmo.x-plugins.com";
+			//xhttpd_map_Responders["/gizmo"] = "gizmo.x-plugins.com";
 			
 			sprintf( caDbg, "x-httpd: register uri: %s -> %s\n", (char*)inParam, outSig );
 			XPLMDebugString( caDbg );
 			
-			xhttpd_mapResourceMap[ (char*)inParam ] = outSig;
+			xhttpd_map_Responders[ (char*)inParam ] = outSig;
 			
 				
 		}//end if-tree

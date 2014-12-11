@@ -14,6 +14,12 @@
 
 
 
+
+#include "x_httpd_responder.h"
+
+
+
+
 //extract auth token from raw data
 void x_httpd_request::parseAuthToken(){
 	
@@ -273,20 +279,22 @@ x_httpd_request::x_httpd_request( int sock_client, std::string sAuthTokenB64 ){
 
 	this->hpt.start();
 	
+	this->map_Responders["/get/"] = new x_httpd_responder__dref_get();  //std::string("Dataref getter."); //get/sim/system/leaf
+	this->map_Responders["/set/"] = new x_httpd_responder__dref_set(); //std::string("Dataref setter."); //set/sim/system/leaf/value
 	
-	this->mapResourceMap["/get/"] = std::string("Dataref getter."); //get/sim/system/leaf
-	this->mapResourceMap["/set/"] = std::string("Dataref setter."); //set/sim/system/leaf/value
+	this->map_Responders["/cmd/"] = new x_httpd_responder__cmd_handler(); //std::string("Command API."); // /cmd/start/foo || /cmd/stop/foo || /cmd/once/foo
 	
-	this->mapResourceMap["/cmd/"] = std::string("Command API."); // /cmd/start/foo || /cmd/stop/foo || /cmd/once/foo
-	
-	this->mapResourceMap["/sit/"] = std::string("Situation Loader."); // /sit/load/filename.sit
-	
-	this->mapResourceMap["/pause/"] = std::string("X-Plane Pause toggle."); // /pause/1 || /pause/0
-	
-	this->mapResourceMap["/quit"] = std::string("X-Plane remote quit."); //no option
 
-	this->mapResourceMap["/echo"] = std::string("Request echo. Debug browser packets."); //no option
 
+	/*
+	this->map_Responders["/sit/"] = std::string("Situation Loader."); // /sit/load/filename.sit
+	
+	this->map_Responders["/pause/"] = std::string("X-Plane Pause toggle."); // /pause/1 || /pause/0
+	
+	this->map_Responders["/quit"] = std::string("X-Plane remote quit."); //no option
+
+	this->map_Responders["/echo"] = std::string("Request echo. Debug browser packets."); //no option
+	*/
 
 }
 
@@ -445,16 +453,23 @@ void x_httpd_request::processRequest(){
 					
 
 					//check to see if another plugin has registered to handle this resource..
-					std::map<std::string, std::string>::iterator it = mapResourceMap.find( requestString );
-					if( it != mapResourceMap.end() ){
+					std::map<std::string, void*>::iterator it = map_Responders.find( requestString );
+					if( it != map_Responders.end() ){
 						
 						//We have located a module that wants to handle the request.
 						//Pass off to the X-Plane IPC handler code.
 						//this->processRequest_IPC();
 						
+						/*
 						this->response.setContentType("text/plain");
-						this->response.setContentBody( it->second.c_str() );
+						this->response.setContentBody( "Responder Map WIP" );
 						this->response.write();
+						*/
+						
+						x_httpd_responder *tmpResponder = (x_httpd_responder*)it->second;						
+						tmpResponder->write( this ); //we only need to pass in the request object as it already contains a reference to the responder object
+						
+						
 						
 					
 					}else{
