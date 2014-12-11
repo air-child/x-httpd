@@ -8,7 +8,7 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 */
 
 
-#include "main.h"
+#include "main_xpl.h"
 
 
 #pragma mark Mandatory X-Plugin Signatures
@@ -41,6 +41,12 @@ PLUGIN_API int XPluginStart(
 		XPLMDebugString( caDbg );
 
 
+
+		
+		//create httpd instance.
+		httpd = new x_httpd( 1312 );
+		
+		//work is handled during FLCB cycles.
 		
 
 
@@ -107,11 +113,6 @@ PLUGIN_API int XPluginStart(
 											);
 
 
-
-
-
-
-	prepareFileCache();
 
 		xpdr_Lat = XPLMFindDataRef("sim/flightmodel/position/latitude");
 		xpdr_Lon = XPLMFindDataRef("sim/flightmodel/position/longitude");
@@ -209,11 +210,12 @@ void HandleMenuClick(void *inMenuRef, void *inItemRef){
 						dialog_ChangePassword();					
 					}
 
+/*
 	}else if( strcmp( (char*)inItemRef, "refresh_cache") == 0 ){
 					cleanupFileCache();
 					prepareFileCache();
 					XPLMSpeakString("x-httpd; Content has been refreshed.");
-
+*/
 	}else if( strcmp( (char*)inItemRef, "console_log") == 0 ){
 					if( bLogDebugToConsole ){
 						bLogDebugToConsole = 0;
@@ -272,6 +274,7 @@ int changePassword(){
 			printf( "encoded tokens: %s\n", ret );
 			
 		
+			/*
 			free( auth_token_raw );
 			free( auth_token_b64 );
 			auth_token_raw = (unsigned char*)malloc( strlen(plain) );
@@ -279,7 +282,7 @@ int changePassword(){
 			
 			strcpy( (char *)auth_token_raw, (const char*)plain );
 			strcpy( (char *)auth_token_b64, (const char*)ret );
-			
+			*/
 			
 			
 			char webRoot[1024] = "";
@@ -519,7 +522,7 @@ void dialog_About(){
 
 
 		XPCreateWidget(tleft+15, ttop+2, tright, tbottom,
-                    1, X_HTTPD_VERSION_STRING, 0, 
+                    1, XHTTPD_SERVER_MESSAGE, 0, 
                     gRootAbout,
                     xpWidgetClass_Caption
                     );
@@ -598,7 +601,6 @@ void dialog_About(){
 
 PLUGIN_API void XPluginStop(void){
 
-	cleanupFileCache();
 
 }
 
@@ -669,10 +671,9 @@ PLUGIN_API void XPluginReceiveMessage(
 
 			//xhttpd_map_Responders["/gizmo"] = "gizmo.x-plugins.com";
 			
-			sprintf( caDbg, "x-httpd: register uri: %s -> %s\n", (char*)inParam, outSig );
+			sprintf( caDbg, "x-httpd: DISABLED: register uri: (%s) -> (%s)\n", (char*)inParam, outSig );
 			XPLMDebugString( caDbg );
 			
-			xhttpd_map_Responders[ (char*)inParam ] = outSig;
 			
 				
 		}//end if-tree
@@ -697,6 +698,7 @@ float MyFlightLoopCallback(
 {
 
 
+		httpd->run_slice( 5000 ); //max 5ms for web server work.
 
 
     //come get me next frame.
@@ -708,6 +710,7 @@ float MyFlightLoopCallback(
 
 
 
+#if 0
 
 void findPluginFolder(char *buffer){
 
@@ -766,4 +769,4 @@ void findWebRoot( char *buffer ){
 
 }
 
-
+#endif

@@ -55,6 +55,11 @@ void x_httpd_responder__cmd_handler::eat( x_httpd_request *request ){
 		}
 		
 		//we now have a reconstructed command string
+		#if XPLM200
+			printf("XPL mode\n");
+		#else
+			printf("CLI mode\n");
+		#endif
 		
 		//exec according to mode.
 		if( "start" == sCmdMode ){			

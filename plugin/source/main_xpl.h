@@ -16,15 +16,27 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 #pragma mark Include Headers
 
 
+#include "global_defs.h"
 
 #include "common_sdk.h"
-
 #include "common_includes.h"
 
-#include "global_defs.h"
-#include "http.h"
+
+#include "io_utils.h"
+
+
+#include "x_httpd.h"
+
+x_httpd *httpd;
+
+
 #include "drefs.h"
-#include "common_sdk.h"
+
+
+//quick hack globals to get server working.
+int bAllowRemoteConnections = 1;
+int bRequirePassword = 0;
+int bLogDebugToConsole = 1;
 
 
 
@@ -55,9 +67,9 @@ int WidgetCallback(
                   
 
 
-    int TOP_SHIFT=20
-    int BOT_SHIFT=12
-    int CONFIG_STRING_SIZE=256
+    int TOP_SHIFT=20;
+    int BOT_SHIFT=12;
+    int CONFIG_STRING_SIZE=256;
 
 
 
@@ -73,9 +85,6 @@ XPWidgetID gRootAbout = NULL;
 
         
 
-
-//x-plane data refs
-#include "drefs.h"
 
 
 #pragma mark Mandatory X-Plugin Signatures

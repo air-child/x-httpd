@@ -28,6 +28,7 @@
 		2340D54F1A39D3A20081BC82 /* x_httpd_responder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2340D54D1A39D3A20081BC82 /* x_httpd_responder.cpp */; };
 		2340D5501A39D3A20081BC82 /* x_httpd_responder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2340D54D1A39D3A20081BC82 /* x_httpd_responder.cpp */; };
 		2340D5511A39D3A20081BC82 /* x_httpd_responder.h in Headers */ = {isa = PBXBuildFile; fileRef = 2340D54E1A39D3A20081BC82 /* x_httpd_responder.h */; };
+		2340D5521A3A07920081BC82 /* io_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2340D5311A3448310081BC82 /* io_utils.cpp */; };
 		234964F4183B9526001F6498 /* x_httpd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 234964F2183B9526001F6498 /* x_httpd.cpp */; };
 		234964F5183B9526001F6498 /* x_httpd.h in Headers */ = {isa = PBXBuildFile; fileRef = 234964F3183B9526001F6498 /* x_httpd.h */; };
 		234964FE183B99B0001F6498 /* drefs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 234964FC183B99B0001F6498 /* drefs.cpp */; };
@@ -366,17 +367,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2340D5521A3A07920081BC82 /* io_utils.cpp in Sources */,
+				23496502183BB82E001F6498 /* global_defs.cpp in Sources */,
 				8D01CCCC0486CAD60068D4B7 /* main_xpl.cpp in Sources */,
 				233DFB570921C2B80008D35B /* b64.cpp in Sources */,
-				234964F4183B9526001F6498 /* x_httpd.cpp in Sources */,
 				2340D54A1A38C2820081BC82 /* Timer.cpp in Sources */,
 				234964FE183B99B0001F6498 /* drefs.cpp in Sources */,
-				23496502183BB82E001F6498 /* global_defs.cpp in Sources */,
 				23BBB5B8183E6C01001E3038 /* ixplc.cpp in Sources */,
-				2340D54F1A39D3A20081BC82 /* x_httpd_responder.cpp in Sources */,
 				239EF5AB1A32FE1300A0715F /* mime_types.cpp in Sources */,
-				2340D53F1A3476FB0081BC82 /* x_httpd_response.cpp in Sources */,
+				234964F4183B9526001F6498 /* x_httpd.cpp in Sources */,
 				2340D53A1A3476EC0081BC82 /* x_httpd_request.cpp in Sources */,
+				2340D53F1A3476FB0081BC82 /* x_httpd_response.cpp in Sources */,
+				2340D54F1A39D3A20081BC82 /* x_httpd_responder.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
