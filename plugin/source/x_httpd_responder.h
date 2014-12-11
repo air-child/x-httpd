@@ -28,7 +28,7 @@ Handles logic for handling things like: /get/... /set/... /cmd/... etc, etc.
 */
 class x_httpd_responder{
 	protected:
-		//Nothing in super class, Request instance state is passed as arguments to write()
+		//Nothing in super class, Request instance state is passed as arguments to eat()
 		
 	public:
 		//x_httpd_responder();
@@ -38,7 +38,7 @@ class x_httpd_responder{
 		//arguments are passed here as the module will be instantiated for the life of the server but it must be able to
 		//process many different requests during its lifetime.
 		//Yes, there are better ways to do this and instantiate only when needed but that can wait for later. Bigger fish to fry.
-		virtual void write( x_httpd_request *request ){
+		virtual void eat( x_httpd_request *request ){
 			//blank!
 		};
 
@@ -51,7 +51,7 @@ class x_httpd_responder__dref_access : public x_httpd_responder{
 		
 	public:
 		//inherited from super
-		//virtual void write( x_httpd_request &req, x_httpd_response &resp );
+		//virtual void eat( x_httpd_request &req, x_httpd_response &resp );
 };
 
 
@@ -59,14 +59,14 @@ class x_httpd_responder__dref_get : public x_httpd_responder__dref_access{
 	protected:
 		//superclass dref pool
 	public:
-		virtual void write( x_httpd_request *request );
+		virtual void eat( x_httpd_request *request );
 };
 
 class x_httpd_responder__dref_set : public x_httpd_responder__dref_access{
 	protected:
 		//superclass dref pool
 	public:
-		virtual void write( x_httpd_request *request );
+		virtual void eat( x_httpd_request *request );
 };
 
 
@@ -81,7 +81,7 @@ class x_httpd_responder__cmd_handler : public x_httpd_responder{
 		//incredibly short detection and can be quite annoying.
 		
 	public:
-		virtual void write( x_httpd_request *request );
+		virtual void eat( x_httpd_request *request );
 };
 
 
