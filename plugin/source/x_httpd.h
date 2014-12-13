@@ -50,7 +50,7 @@ class x_httpd{
 		Timer hpt;
 	
 	public:
-		x_httpd( int port );
+		x_httpd( const int port, const char* web_root_folder );
 		~x_httpd();
 
 		void run_cli(); //endless loop, run forever, CLI.

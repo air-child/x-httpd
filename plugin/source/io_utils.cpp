@@ -27,6 +27,7 @@ size_t getFileSize( const char *filename, char* error_message ){
 
 
 
+
 #ifdef XPLM200
 
 void findPluginFolder(char *buffer){
@@ -35,39 +36,31 @@ void findPluginFolder(char *buffer){
     XPLMGetSystemPath(caSysPath);
 	
 	char caPluginFolderPath[2048];
-    sprintf( caPluginFolderPath, "%s/Resources/plugins/", caSysPath );
+    sprintf( caPluginFolderPath, "%sResources/plugins/", caSysPath );
         
-
-	#if APL_HFS
-		sprintf(tmp2, "/Volumes/%s", tmp);
-		strcpy( tmp, tmp2 );
-
-		//replace all occurences of the colon seperator with /'s
-		
-		int x=0;
-		for(x=0; x<(int)strlen(tmp); x++){
-			if( tmp[x] == ':' ){
-				tmp[x] = '/';
-			}    
-		}
-	#endif    
-
 
     strcpy(buffer, caPluginFolderPath);
 
 }
 
 
-
+//XPL version
 void findWebRoot( char *buffer ){
 
 	char pluginFolderPath[2048];
 	findPluginFolder( pluginFolderPath );
 	
-	#if APL
-		sprintf( buffer, "%sx-httpd.x-plugin/x-httpd-content/", pluginFolderPath );
+	sprintf( buffer, "%sx-httpd.x-plugin/x-httpd-content/", pluginFolderPath );
 
-	#endif
+}
+
+
+#else
+
+//CLI debug test harness version, server path is hard coded.
+void findWebRoot( char *buffer ){
+
+	sprintf( buffer, "/Applications/X-Plane 10 beta/Resources/plugins/x-httpd.x-plugin/x-httpd-content/" );
 
 }
 

@@ -27,18 +27,6 @@ PLUGIN_API int XPluginStart(
 	
 	char caDbg[8192];
 
-	char caPluginFolder[2048];
-	char caWebRoot[2048];
-	
-	findPluginFolder( caPluginFolder );
-	findWebRoot( caWebRoot );
-	
-	
-	sprintf( caDbg, "x-httpd: plugin folder: (%s)\n", caPluginFolder);
-	XPLMDebugString( caDbg );
-	
-	sprintf( caDbg, "x-httpd: web root: (%s)\n", caWebRoot);
-	XPLMDebugString( caDbg );
 	
 	
 
@@ -56,9 +44,20 @@ PLUGIN_API int XPluginStart(
 
 
 
+		/*
+		char caPluginFolder[2048];
+		findPluginFolder( caPluginFolder );
+		sprintf( caDbg, "x-httpd: plugin folder: (%s)\n", caPluginFolder);
+		XPLMDebugString( caDbg );
+		*/
+		
+		char caWebRoot[2048];
+		findWebRoot( caWebRoot );
+		sprintf( caDbg, "x-httpd: web root: (%s)\n", caWebRoot);
+		XPLMDebugString( caDbg );
 		
 		//create httpd instance.
-		httpd = new x_httpd( 1312 );
+		httpd = new x_httpd( 1312, caWebRoot );
 		
 		//work is handled during FLCB cycles.
 		

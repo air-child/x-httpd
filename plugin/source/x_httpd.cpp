@@ -27,7 +27,7 @@ Copyright 2005,2013 - Ben Russell, br@x-plugins.com
 
 
 
-x_httpd::x_httpd( int port ){
+x_httpd::x_httpd( const int port, const char* web_root_folder ){
 
 	this->sock = 0; //setup by socket init function
 
@@ -39,7 +39,7 @@ x_httpd::x_httpd( int port ){
 	//default value for username and password for auth
 	this->sAuthTokenRaw = "username:password";
 	
-	this->sWebFolder = std::string("/Applications/X-Plane 10 beta/Resources/plugins/x-httpd.x-plugin/x-httpd-content/");
+	this->sWebFolder = std::string( web_root_folder );
 	printf("Content root:(%s)\n", this->sWebFolder.c_str());
 
 
