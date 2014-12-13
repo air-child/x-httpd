@@ -15,18 +15,16 @@
 
 
 
-
-
-
 //server IO utility functions.
 extern size_t getFileSize( const char *filename, char* error_message );
 
 
-		//x-plane functions for the XPL to worry about..
+#ifdef XPLM200
+#include "common_sdk.h"
+//x-plane functions for the XPL to worry about..
 extern void findPluginFolder(char *buffer);
 extern void findWebRoot( char *buffer );
-
-
+#endif
 
 
 #endif /* defined(__x_httpd__io_utils__) */

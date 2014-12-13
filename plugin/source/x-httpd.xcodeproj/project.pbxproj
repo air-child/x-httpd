@@ -416,6 +416,7 @@
 					"IBM=0",
 					"LIN=0",
 					"XPLM200=1",
+					"XPLM201=1",
 				);
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
@@ -464,6 +465,7 @@
 					"IBM=0",
 					"LIN=0",
 					"XPLM200=1",
+					"XPLM201=1",
 				);
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
@@ -510,6 +512,7 @@
 					"IBM=0",
 					"LIN=0",
 					"XPLM200=1",
+					"XPLM201=1",
 				);
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
@@ -693,6 +696,7 @@
 				2340D5291A3442B30081BC82 /* Default */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Default;
 		};
 /* End XCConfigurationList section */
 	};

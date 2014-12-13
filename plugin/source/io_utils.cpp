@@ -10,10 +10,6 @@
 
 
 
-
-
-
-
 size_t getFileSize( const char *filename, char* error_message ){
 
 	struct stat fsize;
@@ -31,31 +27,51 @@ size_t getFileSize( const char *filename, char* error_message ){
 
 
 
+#ifdef XPLM200
 
+void findPluginFolder(char *buffer){
 
-
-
-void findWebRoot( char *buffer ){
-
-	char pluginFolderPath[1024];
-	//findPluginFolder( pluginFolderPath );
+    char caSysPath[1024];
+    XPLMGetSystemPath(caSysPath);
 	
-	//printf("plugin folder: %s\n", pluginFolderPath );
+	char caPluginFolderPath[2048];
+    sprintf( caPluginFolderPath, "%s/Resources/plugins/", caSysPath );
+        
 
-	#if APL
-	//	sprintf( buffer, "%sx-httpd.x-plugin/x-httpd-content/", pluginFolderPath );
+	#if APL_HFS
+		sprintf(tmp2, "/Volumes/%s", tmp);
+		strcpy( tmp, tmp2 );
 
-	#endif
+		//replace all occurences of the colon seperator with /'s
+		
+		int x=0;
+		for(x=0; x<(int)strlen(tmp); x++){
+			if( tmp[x] == ':' ){
+				tmp[x] = '/';
+			}    
+		}
+	#endif    
 
 
-	sprintf( pluginFolderPath, "very broken." );
+    strcpy(buffer, caPluginFolderPath);
 
 }
 
 
 
+void findWebRoot( char *buffer ){
 
+	char pluginFolderPath[2048];
+	findPluginFolder( pluginFolderPath );
+	
+	#if APL
+		sprintf( buffer, "%sx-httpd.x-plugin/x-httpd-content/", pluginFolderPath );
 
+	#endif
+
+}
+
+#endif
 
 
 

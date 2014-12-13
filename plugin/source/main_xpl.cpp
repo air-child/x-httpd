@@ -21,12 +21,26 @@ PLUGIN_API int XPluginStart(
     strcpy(outName, "x-httpd");
     strcpy(outSig, "http://github.com/benrussell/x-httpd");
     strcpy(outDesc, "http server for X-Plane.");
+	
+	XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
+	
+	
+	char caDbg[8192];
 
-
-		char caDbg[1024];
-
-
-
+	char caPluginFolder[2048];
+	char caWebRoot[2048];
+	
+	findPluginFolder( caPluginFolder );
+	findWebRoot( caWebRoot );
+	
+	
+	sprintf( caDbg, "x-httpd: plugin folder: (%s)\n", caPluginFolder);
+	XPLMDebugString( caDbg );
+	
+	sprintf( caDbg, "x-httpd: web root: (%s)\n", caWebRoot);
+	XPLMDebugString( caDbg );
+	
+	
 
 		char caHostName[255];
 		gethostname(caHostName, 255);
@@ -537,61 +551,8 @@ void dialog_About(){
                     );
 
 
-
-
-
 		ttop-=TOP_SHIFT-5; //move down from the top a bit to clear the window caption etc.
 		tbottom = ttop - BOT_SHIFT-5;
-
-/*
-        XPCreateWidget(tleft+10, ttop, tright, tbottom,
-                        1, "username:", 0, 
-                        gRootChangePassword, 
-                        xpWidgetClass_Caption
-                        );
-      
-        gChangePasswordWidgetTextName = XPCreateWidget(tleft+iFieldOffset, ttop, tright, tbottom,
-                                            1, "", 0, 
-                                            gRootChangePassword, 
-                                            xpWidgetClass_TextField
-                                            );
-
-		ttop-=TOP_SHIFT;//-10; //move down from the top a bit to clear the window caption etc.
-		tbottom = ttop - BOT_SHIFT;//-10;
-		
-
-        XPCreateWidget(tleft+10, ttop, tright, tbottom,
-                    1, "password:", 0, 
-                    gRootChangePassword, 
-                    xpWidgetClass_Caption
-                    );
-
-        gChangePasswordWidgetTextPassword = XPCreateWidget(tleft+iFieldOffset, ttop, tright, tbottom,
-                                        1, "", 0, 
-                                        gRootChangePassword, 
-                                        xpWidgetClass_TextField
-                                        );
-
-		ttop-=TOP_SHIFT; //move down from the top a bit to clear the window caption etc.
-		tbottom = ttop - BOT_SHIFT;
-
-
-
-		gChangePasswordWidgetButtonCancel = XPCreateWidget(left+10, bottom+30, tleft+90, bottom,
-										1, "Cancel", 0, 
-										gRootChangePassword, 
-										xpWidgetClass_Button
-										);
-				XPAddWidgetCallback( gChangePasswordWidgetButtonCancel, WidgetCallback );
-
-		gChangePasswordWidgetButtonOk = XPCreateWidget(right-100, bottom+30, right-10, bottom,
-										1, "OK", 0, 
-										gRootChangePassword, 
-										xpWidgetClass_Button
-										);
-				XPAddWidgetCallback( gChangePasswordWidgetButtonOk, WidgetCallback );
-
-*/
 
 }//end dialog_ChangePassword
 
@@ -708,65 +669,4 @@ float MyFlightLoopCallback(
 
 
 
-
-
-#if 0
-
-void findPluginFolder(char *buffer){
-
-
-    const char *sep = XPLMGetDirectorySeparator();
-
-    char sysPath[512];
-    char *pSysPath = sysPath;
-
-    char tmp[1024];
-    char *ptmp = tmp;
-
-	char tmp2[1024];
-
-    XPLMGetSystemPath(sysPath);
-
-    sprintf(ptmp, "%sResources%cplugins%c", pSysPath, *sep, *sep);
-        
-#if APL
-
-	sprintf(tmp2, "/Volumes/%s", tmp);
-	strcpy( tmp, tmp2 );
-
-//replace all occurences of the colon seperator with /'s
-	
-	int x=0;
-    for(x=0; x<(int)strlen(tmp); x++){
-        if( tmp[x] == ':' ){
-            tmp[x] = '/';
-        }    
-    }
-#endif    
-
-//send it back via the pointer passed in.
-
-	//printf("Plugins folder: %s\n", tmp);
-
-    strcpy(buffer, ptmp);
-
-}
-
-
-
-void findWebRoot( char *buffer ){
-
-	char pluginFolderPath[1024];
-	findPluginFolder( pluginFolderPath );
-	
-	//printf("plugin folder: %s\n", pluginFolderPath );
-
-	#if APL
-		sprintf( buffer, "%sx-httpd.x-plugin/x-httpd-content/", pluginFolderPath );
-
-	#endif
-
-
-}
-
-#endif
+//eof
